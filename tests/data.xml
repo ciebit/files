@@ -24,7 +24,7 @@
             <value>0</value>
             <value>image/jpeg</value>
             <value>2018-05-26</value>
-            <value>metadata 1</value>
+            <value>{"key": "value"}</value>
             <value>1</value>
         </row>
         <row>
@@ -38,7 +38,7 @@
             <value>1205</value>
             <value>image/jpeg</value>
             <value>2017-10-15</value>
-            <value>metadata 2</value>
+            <value>{"key": "value"}</value>
             <value>2</value>
         </row>
     </table>
