@@ -3,7 +3,7 @@ namespace Ciebit\Files\Test\Storages;
 
 use Ciebit\Files\Collection;
 use Ciebit\Files\Status;
-use Ciebit\Files\Story;
+use Ciebit\Files\File;
 use Ciebit\Files\Storages\Database\DatabaseSql;
 use Ciebit\Files\Test\Connection;
 
@@ -12,8 +12,8 @@ class DatabaseSqlTest extends Connection
     public function testGet(): void
     {
         $this->database = new DatabaseSql($this->getPdo());
-        $story = $this->database->get();
-        $this->assertInstanceOf(Story::class, $story);
+        $file = $this->database->get();
+        $this->assertInstanceOf(File::class, $file);
     }
 
     public function testGetFilterByStatus(): void
