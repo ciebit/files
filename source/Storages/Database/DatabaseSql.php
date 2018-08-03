@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace Ciebit\Files\Storages\Database;
 
 use Ciebit\Files\Collection;
-use Ciebit\Files\Builders\FromArray as BuilderFromArray;
+use Ciebit\Files\Builders\Context as Builder;
 use Ciebit\Files\File;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Storage;
@@ -55,7 +55,7 @@ class DatabaseSql extends DatabaseSqlFilters implements DatabaseInterface
         if ($fileData == false) {
             return null;
         }
-        return (new BuilderFromArray)->setData($fileData)->build();
+        return (new Builder)->setData($fileData)->build();
     }
 
     public function getAll(): Collection
@@ -72,10 +72,11 @@ class DatabaseSql extends DatabaseSqlFilters implements DatabaseInterface
             throw new Exception('ciebit.stories.storages.database.get_error', 2);
         }
         $collection = new Collection;
-        $builder = new BuilderFromArray;
+        $builder = new Builder;
         while ($file = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $builder->setData($file);
             $collection->add(
-                $builder->setData($file)->build()
+                $builder->build()
             );
         }
         return $collection;
