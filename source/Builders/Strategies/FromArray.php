@@ -1,14 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Ciebit\Files\Builders;
+namespace Ciebit\Files\Builders\Strategies;
 
-use Ciebit\Files\Builders\Builder;
 use Ciebit\Files\File;
 use Ciebit\Files\Status;
 use DateTime;
 
-class FromArray implements Builder
+class FromArray implements Strategy
 {
     private $data; #:array
 
