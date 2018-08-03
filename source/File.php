@@ -6,7 +6,7 @@ namespace Ciebit\Files;
 use Ciebit\Files\Status;
 use DateTime;
 
-abstract class File
+class File
 {
     private $description; #:string
     private $date_hour; #:DateTime
