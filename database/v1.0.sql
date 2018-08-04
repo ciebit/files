@@ -2,9 +2,8 @@
 -- Table `cb_files`
 --
 CREATE TABLE `cb_files` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
-  `caption` varchar(300) DEFAULT NULL,
   `description` varchar(300) DEFAULT NULL,
   `uri` char(38) NOT NULL,
   `extension` char(5) NOT NULL,
@@ -13,5 +12,6 @@ CREATE TABLE `cb_files` (
   `mimetype` char(40) NOT NULL,
   `date_hour` datetime NOT NULL,
   `metadata` json DEFAULT NULL,
-  `status` tinyint(1) UNSIGNED NOT NULL
+  `status` tinyint(1) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='version:1.0';
