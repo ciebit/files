@@ -1,7 +1,7 @@
 <?php
 namespace Ciebit\Files\Builders;
 
-use Ciebit\Files\Builders\Strategies\Strategy;
+use Ciebit\Files\Builders\Strategy;
 use Ciebit\Files\File;
 
 class Builder
