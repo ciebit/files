@@ -2,7 +2,9 @@
 namespace Ciebit\Files\Builders;
 
 use Ciebit\Files\File;
-use Ciebit\Files\Builders\Strategies\FromArray;
+
+use Ciebit\Files\Images\Builders\FromArray as ImageBuilder;
+use Ciebit\Files\Unknown\Builders\FromArray as UnknownBuilder;
 
 class Context
 {
@@ -16,8 +18,10 @@ class Context
 
     public function build(): File
     {
-        if (is_array($this->data)) {
-            $strategy = (new FromArray)->setData($this->data);
+        if (preg_match('/image/', $this->data['mimetype'])) {
+            $strategy = (new ImageBuilder)->setData($this->data);
+        } else {
+            $strategy = (new Unknown)->setData($this->data);
         }
         return (new Builder($strategy))->build();
     }
