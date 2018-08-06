@@ -5,7 +5,7 @@ use Ciebit\Files\File;
 use Ciebit\Files\Collection;
 use Ciebit\Files\Storages\Storage;
 
-interface DatabaseInterface extends Storage
+interface Database extends Storage
 {
     // public function delete(File $File): self;
 

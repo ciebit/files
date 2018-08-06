@@ -7,11 +7,11 @@ use Ciebit\Files\Builders\Context as Builder;
 use Ciebit\Files\File;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Storage;
-use Ciebit\Files\Storages\Database\DatabaseSqlFilters;
+use Ciebit\Files\Storages\Database\SqlFilters;
 use Exception;
 use PDO;
 
-class DatabaseSql extends DatabaseSqlFilters implements DatabaseInterface
+class Sql extends SqlFilters implements Database
 {
     private $pdo; #PDO
     private $table; #string
