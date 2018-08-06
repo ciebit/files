@@ -21,7 +21,9 @@ class FromArray implements Strategy
     {
         if (
             ! is_array($this->data) OR
-            ! isset($this->data['uri'])
+            ! isset($this->data['name']) OR
+            ! isset($this->data['uri']) OR
+            ! isset($this->data['mimetype'])
         ) {
             throw new Exception('ciebit.files.builders.invalid', 3);
         }
