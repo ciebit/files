@@ -10,7 +10,6 @@ CREATE TABLE `cb_files` (
   `extension` char(5) NOT NULL,
   `size` double(12,2) UNSIGNED NOT NULL COMMENT 'Size in bytes',
   `views` int(10) UNSIGNED DEFAULT '0',
-  `variations` json DEFAULT NULL,
   `mimetype` char(40) NOT NULL,
   `date_hour` datetime NOT NULL,
   `metadata` json DEFAULT NULL,
