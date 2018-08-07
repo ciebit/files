@@ -24,10 +24,8 @@ class Image extends File
     ) {
         parent::__construct($name, $uri, $mimetype, $status);
 
-        $this->setHeight($height);
-        $this->setExtension($extension);
-        $this->setWidth($width);
-        $this->setCaption($caption);
+        $this->height = $height;
+        $this->width = $width;
     }
 
     public function setVariations(VariationsCollection $variations): self
