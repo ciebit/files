@@ -50,10 +50,10 @@ class FromArray implements Strategy
 
         $this->setBasicAttributes($image, $this->data);
 
-        if (isset($this->data['variations'])) {
+        if (isset($metadata->variations)) {
             $image->setVariations(
                 $this->standardizeVariations(
-                    $this->data['variations']
+                    $metadata->variations
                 )
             );
         }
