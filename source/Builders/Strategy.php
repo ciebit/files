@@ -7,5 +7,5 @@ use Ciebit\Files\File;
 
 interface Strategy
 {
-    public function build(): File;
+    public function build();
 }
