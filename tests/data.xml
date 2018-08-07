@@ -9,8 +9,6 @@
         <column>extension</column>
         <column>size</column>
         <column>views</column>
-        <column>height</column>
-        <column>width</column>
         <column>mimetype</column>
         <column>date_hour</column>
         <column>metadata</column>
@@ -24,11 +22,9 @@
             <value>jpg</value>
             <value>10</value>
             <value>0</value>
-            <value>600</value>            
-            <value>150</value>
             <value>image/jpeg</value>
             <value>2018-05-26</value>
-            <value>{"key": "value"}</value>
+            <value>{"width": 600, "height": 150}</value>
             <value>1</value>
         </row>
         <row>
@@ -40,11 +36,9 @@
             <value>jpg</value>
             <value>20</value>
             <value>1205</value>
-            <value>1280</value>            
-            <value>520</value>
             <value>image/jpeg</value>
             <value>2017-10-15</value>
-            <value>{"key": "value"}</value>
+            <value>{"width": 900, "height": 500}</value>
             <value>2</value>
         </row>
         <row>
@@ -56,11 +50,9 @@
             <value>jpg</value>
             <value>30</value>
             <value>100000</value>
-            <value>250</value>            
-            <value>350</value>
             <value>image/jpeg</value>
             <value>2017-08-11</value>
-            <value>{"key": "value"}</value>
+            <value>{"width": 130, "height": 50}</value>
             <value>3</value>
         </row>
         <row>
@@ -72,11 +64,9 @@
             <value>jpg</value>
             <value>40</value>
             <value>5058</value>
-            <value>500</value>            
-            <value>350</value>
             <value>image/jpeg</value>
             <value>2017-01-19</value>
-            <value>{"key": "value"}</value>
+            <value>{"width": 1280, "height": 1000}</value>
             <value>4</value>
         </row>
     </table>

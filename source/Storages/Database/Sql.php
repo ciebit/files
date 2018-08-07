@@ -93,8 +93,6 @@ class Sql extends SqlFilters implements Database
             `file`.`extension`,
             `file`.`size`,
             `file`.`views`,
-            `file`.`height`,
-            `file`.`width`,
             `file`.`mimetype`,
             `file`.`date_hour`,
             `file`.`metadata`,

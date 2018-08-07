@@ -23,15 +23,17 @@ class FromArray implements Strategy
         return $this;
     }
 
-    public function build(): \Ciebit\Files\File
+    public function build(): Image
     {
+        $dimensions = json_decode($this->data['metadata']);
+
         $status = is_array($this->data)
-        && isset($this->data['height'])
+        && isset($dimensions->height)
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
         && isset($this->data['uri'])
-        && isset($this->data['width']);
+        && isset($dimensions->width);
 
         if (! $status) {
             throw new Exception('ciebit.files.images.builders.invalid', 1);
@@ -41,8 +43,8 @@ class FromArray implements Strategy
             $this->data['name'],
             $this->data['mimetype'],
             $this->data['uri'],
-            (int) $this->data['width'],
-            (int) $this->data['height'],
+            (int) $dimensions->width,
+            (int) $dimensions->height,
             new Status((int) $this->data['status'])
         );
 
