@@ -21,7 +21,7 @@ class Context
         if (preg_match('/image/', $this->data['mimetype'])) {
             $strategy = (new ImageBuilder)->setData($this->data);
         } else {
-            $strategy = (new Unknown)->setData($this->data);
+            $strategy = (new UnknownBuilder)->setData($this->data);
         }
         return (new Builder($strategy))->build();
     }

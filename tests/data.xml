@@ -64,9 +64,9 @@
             <value>jpg</value>
             <value>40</value>
             <value>5058</value>
-            <value>image/jpeg</value>
+            <value>application/json</value>
             <value>2017-01-19</value>
-            <value>{"width": 1280, "height": 1000}</value>
+            <value>{}</value>
             <value>4</value>
         </row>
     </table>
