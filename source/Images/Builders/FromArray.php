@@ -25,15 +25,15 @@ class FromArray implements Strategy
 
     public function build(): Image
     {
-        $dimensions = json_decode($this->data['metadata']);
+        $metadata = json_decode($this->data['metadata']);
 
         $status = is_array($this->data)
-        && isset($dimensions->height)
+        && isset($metadata->height)
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
         && isset($this->data['uri'])
-        && isset($dimensions->width);
+        && isset($metadata->width);
 
         if (! $status) {
             throw new Exception('ciebit.files.images.builders.invalid', 1);
@@ -43,8 +43,8 @@ class FromArray implements Strategy
             $this->data['name'],
             $this->data['mimetype'],
             $this->data['uri'],
-            (int) $dimensions->width,
-            (int) $dimensions->height,
+            (int) $metadata->width,
+            (int) $metadata->height,
             new Status((int) $this->data['status'])
         );
 
