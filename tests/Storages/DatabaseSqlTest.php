@@ -4,7 +4,7 @@ namespace Ciebit\Files\Test\Storages;
 use Ciebit\Files\Collection;
 use Ciebit\Files\Status;
 use Ciebit\Files\File;
-use Ciebit\Files\Storages\Database\DatabaseSql;
+use Ciebit\Files\Storages\Database\Sql as DatabaseSql;
 use Ciebit\Files\Test\Connection;
 
 class DatabaseSqlTest extends Connection

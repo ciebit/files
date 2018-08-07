@@ -4,14 +4,17 @@ declare(strict_types=1);
 namespace Ciebit\Files\Images\Builders;
 
 use Ciebit\Files\Images\Image;
-use Ciebit\Files\Images\Builders\Builder;
+use Ciebit\Files\Builders\Strategy;
 use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
 use Ciebit\Files\Status;
+use Ciebit\Files\Builders\SetBasicAttributes;
 use DateTime;
 use Exception;
 
-class FromArray implements Builder
+class FromArray implements Strategy
 {
+    use SetBasicAttributes;
+
     private $data; #:array
 
     public function setData(array $data): self
@@ -22,25 +25,27 @@ class FromArray implements Builder
 
     public function build(): Image
     {
+        $metadata = json_decode($this->data['metadata']);
+
         $status = is_array($this->data)
-        && isset($this->data['height'])
+        && isset($metadata->height)
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
         && isset($this->data['uri'])
-        && isset($this->data['width']);
+        && isset($metadata->width);
 
         if (! $status) {
-            throw new Exception('ciebit.files.builders.invalid', 1);
+            throw new Exception('ciebit.files.images.builders.invalid', 1);
         }
 
         $image = new Image(
             $this->data['name'],
             $this->data['mimetype'],
             $this->data['uri'],
-            $this->data['width'],
-            $this->data['height'],
-            new Status($this->data['status'])
+            (int) $metadata->width,
+            (int) $metadata->height,
+            new Status((int) $this->data['status'])
         );
 
         $this->setBasicAttributes($image, $this->data);

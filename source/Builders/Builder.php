@@ -1,11 +1,20 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files\Builders;
 
+use Ciebit\Files\Builders\Strategy;
 use Ciebit\Files\File;
 
-interface Builder
+class Builder
 {
-    public function build(): File;
+    private $strategy;
+
+    public function __construct(Strategy $strategy)
+    {
+        $this->strategy = $strategy;
+    }
+
+    public function build(): File
+    {
+        return $this->strategy->build();
+    }
 }
