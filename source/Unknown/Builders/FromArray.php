@@ -5,7 +5,6 @@ namespace Ciebit\Files\Unknown\Builders;
 
 use Ciebit\Files\Unknown\Unknown;
 use Ciebit\Files\Builders\Strategy;
-use Ciebit\Files\Unknown\Variations\Collection as VariationsCollection;
 use Ciebit\Files\Status;
 use Ciebit\Files\Builders\SetBasicAttributes;
 use DateTime;
@@ -23,58 +22,27 @@ class FromArray implements Strategy
         return $this;
     }
 
-    public function build(): \Ciebit\Files\File
+    public function build(): Unknown
     {
         $status = is_array($this->data)
-        && isset($this->data['height'])
-        && isset($this->data['mimetype'])
         && isset($this->data['name'])
+        && isset($this->data['mimetype'])
         && isset($this->data['status'])
-        && isset($this->data['uri'])
-        && isset($this->data['width']);
+        && isset($this->data['uri']);
 
         if (! $status) {
-            throw new Exception('ciebit.files.images.builders.invalid', 1);
+            throw new Exception('ciebit.files.unknown.builders.invalid', 1);
         }
 
-        $image = new Image(
+        $unknown = new Unknown(
             $this->data['name'],
             $this->data['mimetype'],
             $this->data['uri'],
-            (int) $this->data['width'],
-            (int) $this->data['height'],
             new Status((int) $this->data['status'])
         );
 
-        $this->setBasicAttributes($image, $this->data);
+        $this->setBasicAttributes($unknown, $this->data);
 
-        if (isset($this->data['variations'])) {
-            $image->setVariations(
-                $this->standardizeVariations(
-                    $this->data['variations']
-                )
-            );
-        }
-
-        return $image;
-    }
-
-    private function standardizeVariations($variationsData): VariationsCollection
-    {
-        if ($variationsData instanceof VariationsCollection) {
-            return $variationsData;
-        }
-
-        $variations = new VariationsCollection;
-
-        if (is_array($variationsData)) {
-            $variationsBuilder = new VariationBuilder;
-            foreach($variationsData as $variation){
-                $variationsBuilder->setData($variation);
-                $variations->add($variationsBuilder->build());
-            }
-        }
-
-        return $variations;
+        return $unknown;
     }
 }
