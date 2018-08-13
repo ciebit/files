@@ -13,6 +13,7 @@ use PDO;
 
 class Sql extends SqlFilters implements Database
 {
+    static private $counterKey = 0;
     private $pdo; #PDO
     private $table; #string
 
@@ -27,6 +28,24 @@ class Sql extends SqlFilters implements Database
         $key = 'id';
         $sql = "`file`.`id` $operator :{$key}";
         $this->addfilter($key, $sql, PDO::PARAM_INT, $id);
+        return $this;
+    }
+
+    public function addFilterByIds(string $operator, int ...$ids): Storage
+    {
+        $keyPrefix = 'id';
+        $keys = [];
+        $operator = $operator == '!=' ? 'NOT IN' : 'IN';
+
+        foreach ($ids as $id) {
+            $key = $keyPrefix . self::$counterKey++;
+            $this->addBind($key, PDO::PARAM_INT, $id);
+            $keys[] = $key;
+        }
+
+        $keysStr = implode(', :', $keys);
+        $this->addSqlFilter("`id` {$operator} (:{$keysStr})");
+
         return $this;
     }
 

@@ -33,6 +33,19 @@ class DatabaseSqlTest extends Connection
         $this->assertEquals($id, $file->getId());
     }
 
+    public function testGetFilterByIds(): void
+    {
+        $id = 2;
+        $this->database = new DatabaseSql($this->getPdo());
+        $this->database->addFilterByIds('=', ...[2,3,4]);
+        $files = $this->database->getAll();
+
+        $filesArray = $files->getArrayObject();
+        $this->assertEquals(2, $filesArray->offsetGet(0)->getId());
+        $this->assertEquals(3, $filesArray->offsetGet(1)->getId());
+        $this->assertEquals(4, $filesArray->offsetGet(2)->getId());
+    }
+
     public function testGetAll(): void
     {
         $this->database = new DatabaseSql($this->getPdo());
