@@ -87,7 +87,6 @@ class Sql extends SqlFilters implements Database
         return '
             `file`.`id`,
             `file`.`name`,
-            `file`.`caption`,
             `file`.`description`,
             `file`.`uri`,
             `file`.`extension`,
