@@ -35,7 +35,6 @@ class DatabaseSqlTest extends Connection
 
     public function testGetFilterByIds(): void
     {
-        $id = 2;
         $this->database = new DatabaseSql($this->getPdo());
         $this->database->addFilterByIds('=', ...[2,3,4]);
         $files = $this->database->getAll();
