@@ -28,16 +28,17 @@ class FromArray implements Strategy
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
-        && isset($this->data['uri']);
+        && isset($this->data['uri'])
+        && is_numeric($this->data['status']);
 
         if (! $status) {
             throw new Exception('ciebit.files.pdfs.builders.invalid', 1);
         }
 
         $pdf = new Pdf(
-            $this->data['name'],
-            $this->data['mimetype'],
-            $this->data['uri'],
+            (string) $this->data['name'],
+            (string) $this->data['mimetype'],
+            (string) $this->data['uri'],
             new Status((int) $this->data['status'])
         );
 
