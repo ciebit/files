@@ -42,13 +42,13 @@
             <value>3</value>
             <value>Title File 3</value>
             <value>Descrição 3</value>
-            <value>title-file-3.jpg</value>
-            <value>jpg</value>
+            <value>title-file-3.pdf</value>
+            <value>pdf</value>
             <value>30</value>
             <value>100000</value>
-            <value>image/jpeg</value>
+            <value>application/pdf</value>
             <value>2017-08-11</value>
-            <value>{"width": 130, "height": 50}</value>
+            <value>{}</value>
             <value>3</value>
         </row>
         <row>
