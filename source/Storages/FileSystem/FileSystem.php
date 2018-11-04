@@ -7,5 +7,5 @@ interface FileSystem extends Storage
 {
     public function has(string $nameFile): bool;
 
-    public function save(string $path, string $nameFile): self;
+    public function copy(string $origin, string $destiny): self;
 }

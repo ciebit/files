@@ -30,14 +30,12 @@ class AwsS3 implements FileSystem
         return true;
     }
 
-    public function save(string $filePath, string $fileName): FileSystem
+    public function copy(string $origin, string $destiny): FileSystem
     {
-        $client = $this->getS3Client();
-
-        $result = $client->putObject([
+        $result = $this->s3Client->putObject([
             'Bucket' => $this->bucket,
-            'Key' => $fileName,
-            'SourceFile' => $filePath,
+            'Key' => $destiny,
+            'SourceFile' => $origin,
             'ACL' => 'public-read'
         ]);
 
