@@ -34,8 +34,10 @@
     },
     "require": {
         "php": "^7.1",
-        "aws/aws-sdk-php": "^3.52",
         "myclabs/php-enum": "^1.6.2"
+    },
+    "suggest": {
+        "aws/aws-sdk-php": "Required when using class Storages/FileSystem/AwsS3"
     },
     "require-dev": {
         "phpunit/phpunit": "^6.4",
