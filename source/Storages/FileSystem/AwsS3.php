@@ -5,6 +5,8 @@ use Aws\S3\S3Client;
 use Exception;
 use Ciebit\Files\Storages\FileSystem\FileSystem;
 
+use function mime_content_type;
+
 class AwsS3 implements FileSystem
 {
     private $bucket; # string
@@ -36,7 +38,8 @@ class AwsS3 implements FileSystem
             'Bucket' => $this->bucket,
             'Key' => $destiny,
             'SourceFile' => $origin,
-            'ACL' => 'public-read'
+            'ACL' => 'public-read',
+            'ContentType' => mime_content_type($origin)
         ]);
 
         return $this;
