@@ -6,7 +6,6 @@ use Ciebit\Files\Collection;
 use Ciebit\Files\Builders\Context as Builder;
 use Ciebit\Files\File;
 use Ciebit\Files\Status;
-use Ciebit\Files\Storages\Storage;
 use Ciebit\Files\Storages\Database\SqlFilters;
 use Exception;
 use PDO;
@@ -23,7 +22,7 @@ class Sql extends SqlFilters implements Database
         $this->table = 'cb_files';
     }
 
-    public function addFilterById(int $id, string $operator = '='): Storage
+    public function addFilterById(int $id, string $operator = '='): Database
     {
         $key = 'id';
         $sql = "`file`.`id` $operator :{$key}";
@@ -31,7 +30,7 @@ class Sql extends SqlFilters implements Database
         return $this;
     }
 
-    public function addFilterByIds(string $operator, int ...$ids): Storage
+    public function addFilterByIds(string $operator, int ...$ids): Database
     {
         $keyPrefix = 'id';
         $keys = [];
@@ -49,7 +48,7 @@ class Sql extends SqlFilters implements Database
         return $this;
     }
 
-    public function addFilterByStatus(Status $status, string $operator = '='): Storage
+    public function addFilterByStatus(Status $status, string $operator = '='): Database
     {
         $key = 'status';
         $sql = "`file`.`status` {$operator} :{$key}";
@@ -123,7 +122,7 @@ class Sql extends SqlFilters implements Database
         return $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
     }
 
-    public function setStartingLine(int $lineInit): Storage
+    public function setStartingLine(int $lineInit): Database
     {
         parent::setOffset($lineInit);
         return $this;
@@ -135,7 +134,7 @@ class Sql extends SqlFilters implements Database
         return $this;
     }
 
-    public function setTotalLines(int $total): Storage
+    public function setTotalLines(int $total): Database
     {
         parent::setLimit($total);
         return $this;
