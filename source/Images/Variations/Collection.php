@@ -7,7 +7,8 @@ use Ciebit\Files\Images\Variations\Variation;
 
 class Collection
 {
-    private $variations; #: Variation
+    /** @var ArrayObject */
+    private $variations;
 
     public function __construct()
     {

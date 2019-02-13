@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files\Images;
 
 use Ciebit\Files\File;
@@ -9,10 +7,18 @@ use Ciebit\Files\Status;
 
 class Image extends File
 {
-    private $height; #int
-    private $width; #int
-	private $caption; #string
-    private $variations; #Variations
+    /** @var string */
+    private $caption;
+
+    /** @var int */
+    private $height;
+
+    /** @var int */
+    private $width;
+
+    /** @var VariationsCollection */
+    private $variations;
+
 
     public function __construct(
         string $name,
@@ -26,23 +32,12 @@ class Image extends File
 
         $this->height = $height;
         $this->width = $width;
+        $this->variations = new VariationsCollection;
     }
 
     public function setVariations(VariationsCollection $variations): self
     {
         $this->variations = $variations;
-        return $this;
-    }
-
-    public function setHeight(int $height): self
-    {
-        $this->height = $height;
-        return $this;
-    }
-
-    public function setWidth(int $width): self
-    {
-        $this->width = $width;
         return $this;
     }
 

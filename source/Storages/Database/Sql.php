@@ -1,5 +1,4 @@
 <?php
-declare(strict_types=1);
 namespace Ciebit\Files\Storages\Database;
 
 use Ciebit\Files\Collection;
@@ -12,9 +11,14 @@ use PDO;
 
 class Sql extends SqlFilters implements Database
 {
+    /** @var int **/
     static private $counterKey = 0;
-    private $pdo; #PDO
-    private $table; #string
+
+    /** @ PDO */
+    private $pdo;
+
+    /** @ string */
+    private $table;
 
     public function __construct(PDO $pdo)
     {

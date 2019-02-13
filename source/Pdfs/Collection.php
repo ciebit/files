@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files\Pdfs;
 
 use Ciebit\Files\Collection as FileCollection;
