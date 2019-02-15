@@ -5,142 +5,233 @@ use Ciebit\Files\Collection;
 use Ciebit\Files\Builders\Context as Builder;
 use Ciebit\Files\File;
 use Ciebit\Files\Status;
-use Ciebit\Files\Storages\Database\SqlFilters;
+use Ciebit\Files\Storages\Database\Database;
+use Ciebit\Files\Storages\Storage;
+use Ciebit\SqlHelper\Sql as SqlHelper;
 use Exception;
 use PDO;
 
-class Sql extends SqlFilters implements Database
+use function array_map;
+use function intval;
+
+class Sql implements Database
 {
+    /** @var string */
+    private const FIELD_ID = 'id';
+
+    /** @var string */
+    private const FIELD_DATETIME = 'datetime';
+
+    /** @var string */
+    private const FIELD_DESCRIPTION = 'description';
+
+    /** @var string */
+    private const FIELD_METADATA = 'metadata';
+
+    /** @var string */
+    private const FIELD_MIMETYPE = 'mimetype';
+
+    /** @var string */
+    private const FIELD_NAME = 'name';
+
+    /** @var string */
+    private const FIELD_SIZE = 'size';
+
+    /** @var string */
+    private const FIELD_STATUS = 'status';
+
+    /** @var string */
+    private const FIELD_URL = 'url';
+
+    /** @var string */
+    private const FIELD_VIEWS = 'views';
+
     /** @var int **/
     static private $counterKey = 0;
 
-    /** @ PDO */
+    /** @var PDO */
     private $pdo;
 
-    /** @ string */
+    /** @var SqlHelper */
+    private $sqlHelper;
+
+    /** @var string */
     private $table;
+
+    /** @var int */
+    private $totalRecords;
 
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
+        $this->sqlHelper = new SqlHelper;
         $this->table = 'cb_files';
+        $this->totalRecords = 0;
     }
 
-    public function addFilterById(int $id, string $operator = '='): Database
+    private function addFilterSql(string $fieldName, int $type, string $operator, ...$value): self
     {
-        $key = 'id';
-        $sql = "`file`.`id` $operator :{$key}";
-        $this->addfilter($key, $sql, PDO::PARAM_INT, $id);
+        $field = "`{$this->table}`.`{$fieldName}`";
+        $this->sqlHelper->addFilterBy($field, $type, $operator, ...$value);
         return $this;
     }
 
-    public function addFilterByIds(string $operator, int ...$ids): Database
+    public function addFilterByDateTime(string $operator, DateTime ...$dateTime): Storage
     {
-        $keyPrefix = 'id';
-        $keys = [];
-        $operator = $operator == '!=' ? 'NOT IN' : 'IN';
-
-        foreach ($ids as $id) {
-            $key = $keyPrefix . self::$counterKey++;
-            $this->addBind($key, PDO::PARAM_INT, $id);
-            $keys[] = $key;
-        }
-
-        $keysStr = implode(', :', $keys);
-        $this->addSqlFilter("`id` {$operator} (:{$keysStr})");
-
+        $dateTimeString = array_map(
+            function($item){ return $item->format('Y-m-d H:i:s'); },
+            $dateTime
+        );
+        $this->addFilter(self::FIELD_DATETIME, PDO::PARAM_STR, $operator, ...$dateTimeString);
         return $this;
     }
 
-    public function addFilterByStatus(Status $status, string $operator = '='): Database
+    public function addFilterByDescription(string $operator, string ...$descriptions): Storage
     {
-        $key = 'status';
-        $sql = "`file`.`status` {$operator} :{$key}";
-        $this->addFilter($key, $sql, PDO::PARAM_INT, $status->getValue());
+        $this->addFilter(self::FIELD_DESCRIPTION, PDO::PARAM_STR, $operator, ...$descriptions);
         return $this;
     }
 
-    public function get(): ?File
+    public function addFilterById(string $operator, string ...$ids): Storage
+    {
+        $ids = array_map('intval', $ids);
+        $this->addFilter(self::FIELD_ID, PDO::PARAM_INT, $operator, ...$ids);
+        return $this;
+    }
+
+    public function addFilterByMimetype(string $operator, string ...$mimetypes): Storage
+    {
+        $this->addFilter(self::FIELD_MIMETYPE, PDO::PARAM_STR, $operator, ...$mimetypes);
+        return $this;
+    }
+
+    public function addFilterByName(string $operator, string ...$names): Storage
+    {
+        $this->addFilter(self::FIELD_NAME, PDO::PARAM_STR, $operator, ...$names);
+        return $this;
+    }
+
+    public function addFilterBySize(string $operator, int ...$sizes): Storage
+    {
+        $this->addFilter(self::FIELD_SIZE, PDO::PARAM_INT, $operator, ...$sizes);
+        return $this;
+    }
+
+    public function addFilterByStatus(string $operator, Status ...$status): Database
+    {
+        $ids = array_map(function($status){
+            return (int) $status->getValue();
+        }, $status);
+        $this->addFilter(self::FIELD_STATUS, PDO::PARAM_INT, $operator, ...$status);
+        return $this;
+    }
+
+    public function addFilterByUrl(string $operator, string ...$urls): Storage
+    {
+        $this->addFilter(self::FIELD_URL, PDO::PARAM_STR, $operator, ...$urls);
+        return $this;
+    }
+
+    public function addFilterByViews(string $operator, int ...$views): Storage
+    {
+        $this->addFilter(self::FIELD_VIEWS, PDO::PARAM_INT, $operator, ...$views);
+        return $this;
+    }
+
+    /** @throws Exception */
+    public function find(): ?File
     {
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
             {$this->getFields()}
-            FROM {$this->table} as `file`
-            WHERE {$this->generateSqlFilters()}
+            FROM {$this->table}
+            WHERE {$this->sqlHelper->generateSqlFilters()}
             LIMIT 1
         ");
-        $this->bind($statement);
+
+        $this->sqlHelper->bind($statement);
+
         if ($statement->execute() === false) {
-            throw new Exception('ciebit.stories.storages.database.get_error', 2);
+            throw new Exception('ciebit.files.storages.get_error', 2);
         }
+
+        $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
+
         $fileData = $statement->fetch(PDO::FETCH_ASSOC);
         if ($fileData == false) {
             return null;
         }
+
         return (new Builder)->setData($fileData)->build();
     }
 
-    public function getAll(): Collection
+    /** @throws Exception */
+    public function findAll(): Collection
     {
         $statement = $this->pdo->prepare("
             SELECT SQL_CALC_FOUND_ROWS
             {$this->getFields()}
-            FROM {$this->table} as `file`
-            WHERE {$this->generateSqlFilters()}
-            {$this->generateSqlLimit()}
+            FROM {$this->table}
+            WHERE {$this->sqlHelper->generateSqlFilters()}
+            {$this->sqlHelper->generateSqlLimit()}
         ");
-        $this->bind($statement);
+
+        $this->sqlHelper->bind($statement);
+
         if ($statement->execute() === false) {
-            throw new Exception('ciebit.stories.storages.database.get_error', 2);
+            throw new Exception('ciebit.stories.storages.get_error', 2);
         }
+
+        $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
+
         $collection = new Collection;
         $builder = new Builder;
-        while ($file = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $builder->setData($file);
+
+        while ($fileData = $statement->fetch(PDO::FETCH_ASSOC)) {
             $collection->add(
-                $builder->build()
+                $builder->setData($fileData)->build()
             );
         }
+
         return $collection;
     }
 
     private function getFields(): string
     {
-        return '
-            `file`.`id`,
-            `file`.`name`,
-            `file`.`description`,
-            `file`.`uri`,
-            `file`.`extension`,
-            `file`.`size`,
-            `file`.`views`,
-            `file`.`mimetype`,
-            `file`.`date_hour`,
-            `file`.`metadata`,
-            `file`.`status`
-        ';
+        return "
+            `{$this->table}`.`{self::FIELD_ID}`,
+            `{$this->table}`.`{self::FIELD_NAME}`,
+            `{$this->table}`.`{self::FIELD_DESCRIPTION}`,
+            `{$this->table}`.`{self::FIELD_URL}`,
+            `{$this->table}`.`{self::FIELD_SIZE}`,
+            `{$this->table}`.`{self::FIELD_VIEWS}`,
+            `{$this->table}`.`{self::FIELD_MIMETYPE}`,
+            `{$this->table}`.`{self::FIELD_DATETIME}`,
+            `{$this->table}`.`{self::FIELD_METADATA}`,
+            `{$this->table}`.`{self::FIELD_STATUS}`
+        ";
     }
 
-    public function getTotalRows(): int
+    public function getTotalRecords(): int
     {
-        return $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
+        return $this->totalRecords;
     }
 
-    public function setStartingLine(int $lineInit): Database
+    public function setLimit(int $limit): Database
     {
-        parent::setOffset($lineInit);
+        $this->sqlHelper->setLimit($limit);
+        return $this;
+    }
+
+    public function setOffset(int $offset): Database
+    {
+        $this->sqlHelper->setOffset($offset);
         return $this;
     }
 
     public function setTable(string $name): self
     {
         $this->table = $name;
-        return $this;
-    }
-
-    public function setTotalLines(int $total): Database
-    {
-        parent::setLimit($total);
         return $this;
     }
 }
