@@ -4,43 +4,44 @@ namespace Ciebit\Files\Images\Variations;
 use ArrayIterator;
 use ArrayObject;
 use Ciebit\Files\Images\Variations\Variation;
+use Countable;
+use IteratorAggregate;
 
-class Collection
+use function count;
+
+class Collection implements Countable, IteratorAggregate
 {
-    /** @var ArrayObject */
+    /** @var array */
     private $variations;
 
     public function __construct()
     {
-        $this->variations = new ArrayObject;
+        $this->variations = [];
     }
 
-    public function add(Variation $variation): self
+    public function add(string $key, Variation $variation): self
     {
-        $this->append($variation);
+        $this->variations[$key] = $variation;
         return $this;
+    }
+
+    public function count(): int
+    {
+        return count($this->variations);
+    }
+
+    public function find(string $key): ?Variation
+    {
+        return $this->variations[$key] ?? null;
     }
 
     public function getArrayObject(): ArrayObject
     {
-        return clone $this->variations;
-    }
-
-    public function getById(int $id): ?Variation
-    {
-        $iterator = $this->getIterator();
-
-        foreach ($iterator as $variation) {
-            if ($variation->getId() == $id) {
-                return $variation;
-            }
-        }
-
-        return null;
+        return new ArrayObject($this->variations);
     }
 
     public function getIterator(): ArrayIterator
     {
-        return $this->variations->getIterator();
+        return new ArrayIterator($this->variations);
     }
 }
