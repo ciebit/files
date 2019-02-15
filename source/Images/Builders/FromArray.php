@@ -32,7 +32,7 @@ class FromArray implements Strategy
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
-        && isset($this->data['uri'])
+        && isset($this->data['url'])
         && isset($metadata->width);
 
         if (! $status) {
@@ -42,7 +42,7 @@ class FromArray implements Strategy
         $image = new Image(
             $this->data['name'],
             $this->data['mimetype'],
-            $this->data['uri'],
+            $this->data['url'],
             (int) $metadata->width,
             (int) $metadata->height,
             new Status((int) $this->data['status'])

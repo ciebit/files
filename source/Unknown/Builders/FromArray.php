@@ -28,7 +28,7 @@ class FromArray implements Strategy
         && isset($this->data['name'])
         && isset($this->data['mimetype'])
         && isset($this->data['status'])
-        && isset($this->data['uri']);
+        && isset($this->data['url']);
 
         if (! $status) {
             throw new Exception('ciebit.files.unknown.builders.invalid', 1);
@@ -37,7 +37,7 @@ class FromArray implements Strategy
         $unknown = new Unknown(
             $this->data['name'],
             $this->data['mimetype'],
-            $this->data['uri'],
+            $this->data['url'],
             new Status((int) $this->data['status'])
         );
 

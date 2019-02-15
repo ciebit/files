@@ -9,10 +9,10 @@ class Unknown extends File
 {
     public function __construct(
         string $name,
-        string $uri,
+        string $url,
         string $mimetype,
         Status $status
     ) {
-        parent::__construct($name, $uri, $mimetype, $status);
+        parent::__construct($name, $url, $mimetype, $status);
     }
 }

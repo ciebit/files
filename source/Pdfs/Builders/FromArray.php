@@ -28,7 +28,7 @@ class FromArray implements Strategy
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
-        && isset($this->data['uri'])
+        && isset($this->data['url'])
         && is_numeric($this->data['status']);
 
         if (! $status) {
@@ -38,7 +38,7 @@ class FromArray implements Strategy
         $pdf = new Pdf(
             (string) $this->data['name'],
             (string) $this->data['mimetype'],
-            (string) $this->data['uri'],
+            (string) $this->data['url'],
             new Status((int) $this->data['status'])
         );
 
