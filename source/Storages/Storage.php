@@ -1,39 +1,13 @@
 <?php
 namespace Ciebit\Files\Storages;
 
+use Ciebit\Files\Collection;
+use Ciebit\Files\File;
+use Ciebit\Files\Status;
+use DateTime;
+
 interface Storage
 {
-    /** @var string */
-    public const FIELD_ID = 'id';
-
-    /** @var string */
-    public const FIELD_DATETIME = 'datetime';
-
-    /** @var string */
-    public const FIELD_DESCRIPTION = 'description';
-
-    /** @var string */
-    public const FIELD_METADATA = 'metadata';
-
-    /** @var string */
-    public const FIELD_MIMETYPE = 'mimetype';
-
-    /** @var string */
-    public const FIELD_NAME = 'name';
-
-    /** @var string */
-    public const FIELD_SIZE = 'size';
-
-    /** @var string */
-    public const FIELD_STATUS = 'status';
-
-    /** @var string */
-    public const FIELD_URL = 'url';
-
-    /** @var string */
-    public const FIELD_VIEWS = 'views';
-
-
     public function addFilterByDateTime(string $operator, DateTime ...$values): self;
 
     public function addFilterByDescription(string $operator, string ...$values): self;

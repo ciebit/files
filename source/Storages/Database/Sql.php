@@ -8,6 +8,7 @@ use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Database;
 use Ciebit\Files\Storages\Storage;
 use Ciebit\SqlHelper\Sql as SqlHelper;
+use DateTime;
 use Exception;
 use PDO;
 
@@ -69,7 +70,7 @@ class Sql implements Database
         $this->totalRecords = 0;
     }
 
-    private function addFilterSql(string $fieldName, int $type, string $operator, ...$value): self
+    private function addFilter(string $fieldName, int $type, string $operator, ...$value): self
     {
         $field = "`{$this->table}`.`{$fieldName}`";
         $this->sqlHelper->addFilterBy($field, $type, $operator, ...$value);
@@ -117,12 +118,12 @@ class Sql implements Database
         return $this;
     }
 
-    public function addFilterByStatus(string $operator, Status ...$status): Database
+    public function addFilterByStatus(string $operator, Status ...$status): Storage
     {
-        $ids = array_map(function($status){
+        $statusInt = array_map(function($status){
             return (int) $status->getValue();
         }, $status);
-        $this->addFilter(self::FIELD_STATUS, PDO::PARAM_INT, $operator, ...$status);
+        $this->addFilter(self::FIELD_STATUS, PDO::PARAM_INT, $operator, ...$statusInt);
         return $this;
     }
 
@@ -136,33 +137,6 @@ class Sql implements Database
     {
         $this->addFilter(self::FIELD_VIEWS, PDO::PARAM_INT, $operator, ...$views);
         return $this;
-    }
-
-    /** @throws Exception */
-    public function find(): ?File
-    {
-        $statement = $this->pdo->prepare("
-            SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
-            FROM {$this->table}
-            WHERE {$this->sqlHelper->generateSqlFilters()}
-            LIMIT 1
-        ");
-
-        $this->sqlHelper->bind($statement);
-
-        if ($statement->execute() === false) {
-            throw new Exception('ciebit.files.storages.get_error', 2);
-        }
-
-        $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
-
-        $fileData = $statement->fetch(PDO::FETCH_ASSOC);
-        if ($fileData == false) {
-            return null;
-        }
-
-        return (new Builder)->setData($fileData)->build();
     }
 
     /** @throws Exception */
@@ -196,20 +170,46 @@ class Sql implements Database
         return $collection;
     }
 
+    /** @throws Exception */
+    public function findOne(): ?File
+    {
+        $statement = $this->pdo->prepare("
+            SELECT SQL_CALC_FOUND_ROWS
+            {$this->getFields()}
+            FROM {$this->table}
+            WHERE {$this->sqlHelper->generateSqlFilters()}
+            LIMIT 1
+        ");
+
+        $this->sqlHelper->bind($statement);
+
+        if ($statement->execute() === false) {
+            var_dump($statement->errorInfo());
+            throw new Exception('ciebit.files.storages.get_error', 2);
+        }
+
+        $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
+
+        $fileData = $statement->fetch(PDO::FETCH_ASSOC);
+        if ($fileData == false) {
+            return null;
+        }
+
+        return (new Builder)->setData($fileData)->build();
+    }
+
     private function getFields(): string
     {
-        return "
-            `{$this->table}`.`{self::FIELD_ID}`,
-            `{$this->table}`.`{self::FIELD_NAME}`,
-            `{$this->table}`.`{self::FIELD_DESCRIPTION}`,
-            `{$this->table}`.`{self::FIELD_URL}`,
-            `{$this->table}`.`{self::FIELD_SIZE}`,
-            `{$this->table}`.`{self::FIELD_VIEWS}`,
-            `{$this->table}`.`{self::FIELD_MIMETYPE}`,
-            `{$this->table}`.`{self::FIELD_DATETIME}`,
-            `{$this->table}`.`{self::FIELD_METADATA}`,
-            `{$this->table}`.`{self::FIELD_STATUS}`
-        ";
+        return "`{$this->table}`.`". self::FIELD_ID .'`,'
+            . "`{$this->table}`.`". self::FIELD_NAME .'`,'
+            . "`{$this->table}`.`". self::FIELD_DESCRIPTION .'`,'
+            . "`{$this->table}`.`". self::FIELD_URL .'`,'
+            . "`{$this->table}`.`". self::FIELD_SIZE .'`,'
+            . "`{$this->table}`.`". self::FIELD_VIEWS .'`,'
+            . "`{$this->table}`.`". self::FIELD_MIMETYPE .'`,'
+            . "`{$this->table}`.`". self::FIELD_DATETIME .'`,'
+            . "`{$this->table}`.`". self::FIELD_METADATA .'`,'
+            . "`{$this->table}`.`". self::FIELD_STATUS .'`';
     }
 
     public function getTotalRecords(): int
@@ -217,13 +217,13 @@ class Sql implements Database
         return $this->totalRecords;
     }
 
-    public function setLimit(int $limit): Database
+    public function setLimit(int $limit): Storage
     {
         $this->sqlHelper->setLimit($limit);
         return $this;
     }
 
-    public function setOffset(int $offset): Database
+    public function setOffset(int $offset): Storage
     {
         $this->sqlHelper->setOffset($offset);
         return $this;
