@@ -12,7 +12,7 @@ abstract class File
     /** @var DateTime */
     private $datetime;
 
-    /** @var int */
+    /** @var string */
     private $id;
 
     /** @var string */
@@ -42,7 +42,7 @@ abstract class File
     ) {
         $this->description = '';
         $this->datetime = new DateTime;
-        $this->id = 0;
+        $this->id = '';
         $this->mimetype = $mimetype;
         $this->name = $name;
         $this->size = 0;
@@ -63,7 +63,7 @@ abstract class File
         return $this;
     }
 
-    public function setId(int $id): self
+    public function setId(string $id): self
     {
         $this->id = $id;
         return $this;
@@ -91,7 +91,7 @@ abstract class File
         return $this->description;
     }
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
