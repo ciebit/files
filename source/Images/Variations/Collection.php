@@ -8,6 +8,7 @@ use Countable;
 use IteratorAggregate;
 
 use function count;
+use function json_encode;
 
 class Collection implements Countable, IteratorAggregate
 {
@@ -17,6 +18,11 @@ class Collection implements Countable, IteratorAggregate
     public function __construct()
     {
         $this->variations = [];
+    }
+
+    public function __toString(): string
+    {
+        return json_encode($this->variations);
     }
 
     public function add(string $key, Variation $variation): self

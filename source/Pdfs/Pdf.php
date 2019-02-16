@@ -13,4 +13,9 @@ class Pdf extends File
     ) {
         parent::__construct($name, $url, 'application/pdf', $status);
     }
+
+    public function getMetadata(): string
+    {
+        return '{}';
+    }
 }

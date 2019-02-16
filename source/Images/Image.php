@@ -41,9 +41,13 @@ class Image extends File
         return $this;
     }
 
-    public function getVariations(): VariationsCollection
+    public function getMetadata(): string
     {
-        return $this->variations;
+        return json_encode([
+            'height' => $this->getHeight(),
+            'width' => $this->getWidth(),
+            'variations' => $this->getVariations()
+        ]);
     }
 
     public function getHeight(): int
@@ -54,5 +58,10 @@ class Image extends File
     public function getWidth(): int
     {
         return $this->width;
+    }
+
+    public function getVariations(): VariationsCollection
+    {
+        return $this->variations;
     }
 }

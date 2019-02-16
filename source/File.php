@@ -96,6 +96,8 @@ abstract class File
         return $this->id;
     }
 
+    public abstract function getMetadata(): string;
+
     public function getMimetype(): string
     {
         return $this->mimetype;

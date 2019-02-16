@@ -1,6 +1,8 @@
 <?php
 namespace Ciebit\Files\Images\Variations;
 
+use function json_encode;
+
 class Variation
 {
     /** @var int */
@@ -22,6 +24,16 @@ class Variation
         $this->height = $height;
         $this->width = $width;
         $this->size = $size;
+    }
+
+    public function __toString(): string
+    {
+        return json_encode([
+            'height' => $this->getHeight(),
+            'size' => $this->getSize(),
+            'url' => $this->getUrl(),
+            'width' => $this->getWidth()
+        ]);
     }
 
     public function getHeight(): int
