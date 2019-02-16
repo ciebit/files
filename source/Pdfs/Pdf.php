@@ -8,10 +8,9 @@ class Pdf extends File
 {
     public function __construct(
         string $name,
-        string $mimetype,
-        string $uri,
+        string $url,
         status $status
     ) {
-        parent::__construct($name, $uri, $mimetype, $status);
+        parent::__construct($name, $url, 'application/pdf', $status);
     }
 }

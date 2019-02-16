@@ -37,7 +37,6 @@ class FromArray implements Strategy
 
         $pdf = new Pdf(
             (string) $this->data['name'],
-            (string) $this->data['mimetype'],
             (string) $this->data['url'],
             new Status((int) $this->data['status'])
         );
