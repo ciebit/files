@@ -30,11 +30,6 @@ class Collection implements Countable, IteratorAggregate
         return count($this->variations);
     }
 
-    public function find(string $key): ?Variation
-    {
-        return $this->variations[$key] ?? null;
-    }
-
     public function getArrayObject(): ArrayObject
     {
         return new ArrayObject($this->variations);
@@ -43,5 +38,10 @@ class Collection implements Countable, IteratorAggregate
     public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->variations);
+    }
+
+    public function findByKey(string $key): ?Variation
+    {
+        return $this->variations[$key] ?? null;
     }
 }
