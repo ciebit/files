@@ -30,8 +30,8 @@ class FromArray implements Builder
 
         return new Variation(
             $this->data['uri'],
-            $this->data['height'],
             $this->data['width'],
+            $this->data['height'],
             $this->data['size']
         );
     }

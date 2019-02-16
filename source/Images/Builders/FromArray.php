@@ -41,8 +41,8 @@ class FromArray implements Strategy
 
         $image = new Image(
             $this->data['name'],
-            $this->data['mimetype'],
             $this->data['url'],
+            $this->data['mimetype'],
             (int) $metadata->width,
             (int) $metadata->height,
             new Status((int) $this->data['status'])

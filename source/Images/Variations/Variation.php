@@ -9,34 +9,34 @@ class Variation
     /** @var int */
     private $width;
 
-    /** @var float */
+    /** @var int */
     private $size;
 
     /** @var string */
-    private $uri;
+    private $url;
 
 
-    public function __construct(string $uri, int $height, int $width, float $size)
+    public function __construct(string $url, int $width, int $height, int $size)
     {
-        $this->uri = $uri;
+        $this->url = $url;
         $this->height = $height;
         $this->width = $width;
         $this->size = $size;
     }
-    
+
     public function getHeight(): int
     {
         return $this->height;
     }
 
-    public function getSize(): float
+    public function getSize(): int
     {
         return $this->size;
     }
 
-    public function getUri(): string
+    public function getUrl(): string
     {
-        return $this->uri;
+        return $this->url;
     }
 
     public function getWidth(): int

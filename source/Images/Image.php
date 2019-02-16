@@ -22,13 +22,13 @@ class Image extends File
 
     public function __construct(
         string $name,
+        string $url,
         string $mimetype,
-        string $uri,
         int $width,
         int $height,
         status $status
     ) {
-        parent::__construct($name, $uri, $mimetype, $status);
+        parent::__construct($name, $url, $mimetype, $status);
 
         $this->height = $height;
         $this->width = $width;
