@@ -17,9 +17,11 @@ class Collection implements Countable, IteratorAggregate
         $this->items = new ArrayObject;
     }
 
-    public function add(File $file): self
+    public function add(File ...$files): self
     {
-        $this->items->append($file);
+        foreach ($files as $file) {
+            $this->items->append($file);
+        }
         return $this;
     }
 
@@ -33,7 +35,7 @@ class Collection implements Countable, IteratorAggregate
         return clone $this->items;
     }
 
-    public function getById(int $id): ?File
+    public function getById(string $id): ?File
     {
         $iterator = $this->getIterator();
 
