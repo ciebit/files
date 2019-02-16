@@ -16,6 +16,9 @@ class UnknownTest extends TestCase
     private const MIMETYPE = 'application/ogg';
 
     /** @var string */
+    private const METADATA = '{}';
+
+    /** @var string */
     private const NAME = 'File Name';
 
     /** @var int */
@@ -40,6 +43,7 @@ class UnknownTest extends TestCase
         ;
 
         $this->assertInstanceOf(File::class, $unknown);
+        $this->assertEquals(self::METADATA, $unknown->getMetadata());
         $this->assertEquals(self::NAME, $unknown->getName());
         $this->assertEquals(self::URL, $unknown->getUrl());
         $this->assertEquals(Status::ACTIVE(), $unknown->getStatus());

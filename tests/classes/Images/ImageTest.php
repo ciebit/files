@@ -5,8 +5,9 @@ use Ciebit\Files\File;
 use Ciebit\Files\Images\Image;
 use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
 use Ciebit\Files\Status;
-use PHPUnit\Framework\TestCase;
 use DateTime;
+use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class ImageTest extends TestCase
 {
@@ -56,6 +57,14 @@ class ImageTest extends TestCase
         $this->assertEquals(self::WIDTH, $image->getWidth());
         $this->assertEquals(self::HEIGHT, $image->getHeight());
         $this->assertEquals(self::SIZE, $image->getSize());
+        $this->assertJsonStringEqualsJsonString(
+            json_encode([
+                'height' => self::HEIGHT,
+                'width' => self::WIDTH,
+                'variations' => new stdClass
+            ]),
+            $image->getMetadata()
+        );
         $this->assertInstanceOf(VariationsCollection::class, $image->getVariations());
         $this->assertEquals(self::VIEWS, $image->getViews());
     }
