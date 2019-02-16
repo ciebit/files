@@ -3,6 +3,7 @@ namespace Ciebit\Files\Test\Storages\Database;
 
 use Ciebit\Files\Collection;
 use Ciebit\Files\File;
+use Ciebit\Files\Pdfs\Pdf;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Sql;
 use Ciebit\Files\Test\BuildPdo;
@@ -71,5 +72,13 @@ class SqlTest extends TestCase
         $files = $database->findAll();
         $this->assertCount(1, $files->getIterator());
         $this->assertEquals($id, $files->getArrayObject()->offsetGet(0)->getId());
+    }
+
+    public function testStorage(): void
+    {
+        $pdf = new Pdf('Name File', 'url-file.pdf', Status::ACTIVE());
+        $storage = new Sql(BuildPdo::build());
+        $storage->store($pdf);
+        $this->assertTrue($pdf->getId() > 0);
     }
 }

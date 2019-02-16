@@ -234,4 +234,49 @@ class Sql implements Database
         $this->table = $name;
         return $this;
     }
+
+    /** @throws Exception */
+    public function store(File $file): Storage
+    {
+        $fieldName = self::FIELD_NAME;
+        $fieldDescription = self::FIELD_DESCRIPTION;
+        $fieldUrl = self::FIELD_URL;
+        $fieldSize = self::FIELD_SIZE;
+        $fieldViews = self::FIELD_VIEWS;
+        $fieldMimetype = self::FIELD_MIMETYPE;
+        $fieldDateTime = self::FIELD_DATETIME;
+        $fieldMetadata = self::FIELD_METADATA;
+        $fieldStatus = self::FIELD_STATUS;
+
+        $statement = $this->pdo->prepare(
+            "INSERT INTO {$this->table} (
+                `{$fieldName}`, `{$fieldDescription}`, `{$fieldUrl}`, `{$fieldSize}`,
+                `{$fieldViews}`, `{$fieldMimetype}`, `{$fieldDateTime}`,
+                `{$fieldMetadata}`, `{$fieldStatus}`
+            ) VALUES (
+                :name, :description, :url, :size,
+                :views, :mimetype, :datetime,
+                :metadata, :status
+            )"
+        );
+
+        $statement->bindValue(':name', $file->getName(), PDO::PARAM_STR);
+        $statement->bindValue(':description', $file->getDescription(), PDO::PARAM_STR);
+        $statement->bindValue(':url', $file->getUrl(), PDO::PARAM_STR);
+        $statement->bindValue(':size', $file->getSize(), PDO::PARAM_INT);
+        $statement->bindValue(':views', $file->getViews(), PDO::PARAM_INT);
+        $statement->bindValue(':mimetype', $file->getMimetype(), PDO::PARAM_STR);
+        $statement->bindValue(':datetime', $file->getDateTime()->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $statement->bindValue(':metadata', $file->getMetadata(), PDO::PARAM_STR);
+        $statement->bindValue(':status', $file->getStatus()->getValue(), PDO::PARAM_INT);
+
+        if (! $statement->execute()) {
+            var_dump($statement->errorInfo());
+            throw new Exception("Error Processing Request", 1);
+        }
+
+        $file->setId($this->pdo->lastInsertId());
+
+        return $this;
+    }
 }
