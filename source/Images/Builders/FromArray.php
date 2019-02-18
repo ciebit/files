@@ -71,9 +71,9 @@ class FromArray implements Strategy
 
         if (is_array($variationsData)) {
             $variationsBuilder = new VariationBuilder;
-            foreach($variationsData as $variation){
+            foreach($variationsData as $key => $variation){
                 $variationsBuilder->setData($variation);
-                $variations->add($variationsBuilder->build());
+                $variations->add($key, $variationsBuilder->build());
             }
         }
 
