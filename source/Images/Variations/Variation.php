@@ -1,9 +1,9 @@
 <?php
 namespace Ciebit\Files\Images\Variations;
 
-use function json_encode;
+use JsonSerializable;
 
-class Variation
+class Variation implements JsonSerializable
 {
     /** @var int */
     private $height;
@@ -26,14 +26,14 @@ class Variation
         $this->size = $size;
     }
 
-    public function __toString(): string
+    public function jsonSerialize(): array
     {
-        return json_encode([
+        return [
             'height' => $this->getHeight(),
             'size' => $this->getSize(),
             'url' => $this->getUrl(),
             'width' => $this->getWidth()
-        ]);
+        ];
     }
 
     public function getHeight(): int

@@ -61,7 +61,7 @@ class ImageTest extends TestCase
             json_encode([
                 'height' => self::HEIGHT,
                 'width' => self::WIDTH,
-                'variations' => new stdClass
+                'variations' => []
             ]),
             $image->getMetadata()
         );

@@ -8,6 +8,8 @@ use Ciebit\Files\Images\Variations\Collection;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 
+use function json_encode;
+
 class CollectionTest extends TestCase
 {
     /** @var int */
@@ -81,5 +83,39 @@ class CollectionTest extends TestCase
     {
         $collection = new Collection;
         $this->assertInstanceOf(ArrayIterator::class, $collection->getIterator());
+    }
+
+    public function testJsonSerialize(): void
+    {
+        $data = [
+            'larger' => [
+                'url' => 'larger.png',
+                'width' => 600,
+                'height' => 300,
+                'size' => 800
+            ],
+            'thumbnail' => [
+                'url' => 'thumbnail.png',
+                'width' => 300,
+                'height' => 200,
+                'size' => 600
+            ]
+        ];
+
+        $collection = new Collection;
+        $collection->add('larger', new Variation(
+            $data['larger']['url'],
+            $data['larger']['width'],
+            $data['larger']['height'],
+            $data['larger']['size']
+        ));
+        $collection->add('thumbnail', new Variation(
+            $data['thumbnail']['url'],
+            $data['thumbnail']['width'],
+            $data['thumbnail']['height'],
+            $data['thumbnail']['size']
+        ));
+
+        $this->assertJsonStringEqualsJsonString(json_encode($data), json_encode($collection));
     }
 }

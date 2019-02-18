@@ -3,10 +3,15 @@ namespace Ciebit\Files\Test\Storages\Database;
 
 use Ciebit\Files\Collection;
 use Ciebit\Files\File;
+use Ciebit\Files\Images\Image;
+use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
+use Ciebit\Files\Images\Variations\Variation;
 use Ciebit\Files\Pdfs\Pdf;
+use Ciebit\Files\Unknown\Unknown;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Sql;
 use Ciebit\Files\Test\BuildPdo;
+use DateTime;
 use PHPUnit\Framework\TestCase;
 
 use function file_get_contents;
@@ -85,11 +90,64 @@ class SqlTest extends TestCase
         $this->assertEquals($id, $files->getArrayObject()->offsetGet(0)->getId());
     }
 
-    public function testStorage(): void
+    public function testStorageImage(): void
     {
-        $pdf = new Pdf('Name File', 'url-file.pdf', Status::ACTIVE());
+        $image1 = (new Image('Image Name File', 'url-image.png', 'image/png', 1000, 600, Status::ACTIVE()))
+        ->setDateTime(new DateTime('2019-02-18 09:29:00'))
+        ->setDescription('Description image')
+        ->setSize(1442)
+        ->setViews(23)
+        ->setId(7);
+
+        $variations = (new VariationsCollection)
+        ->add('thumbnail', new Variation('url-image-thumbnail.png', 300, 200, 612))
+        ->add('larger', new Variation('url-image-larger.png', 600, 300, 879))
+        ;
+
+        $image1->setVariations($variations);
+
+        $this->setDatabaseDefault();
+        $storage = new Sql(BuildPdo::build());
+        $storage->store($image1);
+
+        $image2 = $storage->addFilterById('=', $image1->getId())->findOne();
+
+        $this->assertEquals($image1, $image2);
+    }
+
+    public function testStoragePdf(): void
+    {
+        $pdf = (new Pdf('PDF Name File', 'url-file.pdf', Status::ACTIVE()))
+        ->setDateTime(new DateTime('2019-02-18 09:21:00'))
+        ->setDescription('Description file PDF')
+        ->setSize(2048)
+        ->setViews(33)
+        ->setId(5);
+
+        $this->setDatabaseDefault();
         $storage = new Sql(BuildPdo::build());
         $storage->store($pdf);
-        $this->assertTrue($pdf->getId() > 0);
+
+        $pdf2 = $storage->addFilterById('=', $pdf->getId())->findOne();
+
+        $this->assertEquals($pdf, $pdf2);
+    }
+
+    public function testStorageUnknow(): void
+    {
+        $unknownFile1 = (new Unknown('Unknown Name File', 'url-file.pdf', 'audio/aac', Status::ACTIVE()))
+        ->setDateTime(new DateTime('2019-02-18 09:23:00'))
+        ->setDescription('Description file Unknown')
+        ->setSize(1024)
+        ->setViews(12)
+        ->setId(6);
+
+        $this->setDatabaseDefault();
+        $storage = new Sql(BuildPdo::build());
+        $storage->store($unknownFile1);
+
+        $unknownFile2 = $storage->addFilterById('=', $unknownFile1->getId())->findOne();
+
+        $this->assertEquals($unknownFile1, $unknownFile2);
     }
 }

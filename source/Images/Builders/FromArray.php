@@ -1,15 +1,17 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files\Images\Builders;
 
 use Ciebit\Files\Images\Image;
 use Ciebit\Files\Builders\Strategy;
 use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
+use Ciebit\Files\Images\Variations\Builders\FromArray as VariationBuilder;
 use Ciebit\Files\Status;
 use Ciebit\Files\Builders\SetBasicAttributes;
 use DateTime;
 use Exception;
+
+use function is_array;
+use function is_object;
 
 class FromArray implements Strategy
 {
@@ -69,10 +71,10 @@ class FromArray implements Strategy
 
         $variations = new VariationsCollection;
 
-        if (is_array($variationsData)) {
+        if (is_array($variationsData) || is_object($variationsData)) {
             $variationsBuilder = new VariationBuilder;
             foreach($variationsData as $key => $variation){
-                $variationsBuilder->setData($variation);
+                $variationsBuilder->setData((array) $variation);
                 $variations->add($key, $variationsBuilder->build());
             }
         }

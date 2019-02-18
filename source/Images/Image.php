@@ -5,6 +5,8 @@ use Ciebit\Files\File;
 use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
 use Ciebit\Files\Status;
 
+use function json_encode;
+
 class Image extends File
 {
     /** @var string */

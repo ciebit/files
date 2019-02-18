@@ -36,8 +36,8 @@ class FromArray implements Strategy
 
         $unknown = new Unknown(
             $this->data['name'],
-            $this->data['mimetype'],
             $this->data['url'],
+            $this->data['mimetype'],
             new Status((int) $this->data['status'])
         );
 
