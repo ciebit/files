@@ -9,8 +9,17 @@ use Ciebit\Files\Storages\Database\Sql;
 use Ciebit\Files\Test\BuildPdo;
 use PHPUnit\Framework\TestCase;
 
+use function file_get_contents;
+
 class SqlTest extends TestCase
 {
+    private function setDatabaseDefault(): void
+    {
+        $pdo = $database = BuildPdo::build();
+        $pdo->query('DELETE FROM `cb_files`');
+        $pdo->query(file_get_contents(__DIR__.'/../../../../database/data-example.sql'));
+    }
+
     public function testFind(): void
     {
         $database = new Sql(BuildPdo::build());
@@ -49,6 +58,7 @@ class SqlTest extends TestCase
 
     public function testFindAll(): void
     {
+        $this->setDatabaseDefault();
         $database = new Sql(BuildPdo::build());
         $files = $database->findAll();
         $this->assertInstanceOf(Collection::class, $files);
@@ -57,6 +67,7 @@ class SqlTest extends TestCase
 
     public function testFindAllFilterByStatus(): void
     {
+        $this->setDatabaseDefault();
         $database = new Sql(BuildPdo::build());
         $database->addFilterByStatus('=', Status::ACTIVE());
         $files = $database->findAll();
