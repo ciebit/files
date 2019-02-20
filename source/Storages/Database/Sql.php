@@ -235,6 +235,16 @@ class Sql implements Database
         return $this->totalRecords;
     }
 
+    /** @throws Exception */
+    public function save(File $file): Storage
+    {
+        if ($file->getId() > 0) {
+            return $this->update($file);
+        }
+
+        return $this->store($file);
+    }
+
     public function setLimit(int $limit): Storage
     {
         $this->sqlHelper->setLimit($limit);

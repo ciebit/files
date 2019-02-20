@@ -32,7 +32,7 @@ interface Storage
 
     public function findOne(): ?File;
 
-    // public function save(File $File): self;
+    public function save(File $File): self;
 
     public function setLimit(int $limit): self;
 

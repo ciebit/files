@@ -18,6 +18,35 @@ use function file_get_contents;
 
 class SqlTest extends TestCase
 {
+    private function getImage(): Image
+    {
+        $image = (new Image('Image Name File', 'url-image.png', 'image/png', 1000, 600, Status::ACTIVE()))
+        ->setDateTime(new DateTime('2019-02-18 09:29:00'))
+        ->setDescription('Description image')
+        ->setSize(1442)
+        ->setViews(23)
+        ->setId('7');
+
+        $variations = (new VariationsCollection)
+        ->add('thumbnail', new Variation('url-image-thumbnail.png', 300, 200, 612))
+        ->add('larger', new Variation('url-image-larger.png', 600, 300, 879))
+        ;
+
+        $image->setVariations($variations);
+
+        return $image;
+    }
+
+    private function getPdf(): Pdf
+    {
+        return (new Pdf('PDF Name File', 'url-file.pdf', Status::ACTIVE()))
+        ->setDateTime(new DateTime('2019-02-18 09:21:00'))
+        ->setDescription('Description file PDF')
+        ->setSize(2048)
+        ->setViews(33)
+        ->setId('5');
+    }
+
     private function setDatabaseDefault(): void
     {
         $pdo = $database = BuildPdo::build();
@@ -101,21 +130,26 @@ class SqlTest extends TestCase
         $this->assertEquals($id, $files->getArrayObject()->offsetGet(0)->getId());
     }
 
+    public function testSave(): void
+    {
+        $image1 = $this->getImage()->setId('2');
+
+        $this->setDatabaseDefault();
+        $storage = new Sql(BuildPdo::build());
+        $storage->save(clone $image1);
+        $image2 = $storage->addFilterById('=', $image1->getId())->findOne();
+        $this->assertEquals($image1, $image2);
+
+        $pdf1 = $this->getPdf()->setId('');
+        $storage = new Sql(BuildPdo::build());
+        $storage->save($pdf1);
+        $pdf2 = $storage->addFilterById('=', $pdf1->getId())->findOne();
+        $this->assertEquals($pdf1, $pdf2);
+    }
+
     public function testStorageImage(): void
     {
-        $image1 = (new Image('Image Name File', 'url-image.png', 'image/png', 1000, 600, Status::ACTIVE()))
-        ->setDateTime(new DateTime('2019-02-18 09:29:00'))
-        ->setDescription('Description image')
-        ->setSize(1442)
-        ->setViews(23)
-        ->setId(7);
-
-        $variations = (new VariationsCollection)
-        ->add('thumbnail', new Variation('url-image-thumbnail.png', 300, 200, 612))
-        ->add('larger', new Variation('url-image-larger.png', 600, 300, 879))
-        ;
-
-        $image1->setVariations($variations);
+        $image1 = $this->getImage();
 
         $this->setDatabaseDefault();
         $storage = new Sql(BuildPdo::build());
@@ -128,12 +162,7 @@ class SqlTest extends TestCase
 
     public function testStoragePdf(): void
     {
-        $pdf = (new Pdf('PDF Name File', 'url-file.pdf', Status::ACTIVE()))
-        ->setDateTime(new DateTime('2019-02-18 09:21:00'))
-        ->setDescription('Description file PDF')
-        ->setSize(2048)
-        ->setViews(33)
-        ->setId(5);
+        $pdf = $this->getPdf();
 
         $this->setDatabaseDefault();
         $storage = new Sql(BuildPdo::build());
