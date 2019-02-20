@@ -161,4 +161,21 @@ class SqlTest extends TestCase
 
         $this->assertEquals($unknownFile1, $unknownFile2);
     }
+
+    public function testUpdate(): void
+    {
+        $this->setDatabaseDefault();
+        $database = new Sql(BuildPdo::build());
+        $unknown = new Unknown('File Name', 'file-url.mp3', 'audio/mp3', Status::ACTIVE());
+        $unknown
+        ->setDescription('Description Unknown File')
+        ->setSize(2000)
+        ->setViews(50)
+        ->setDateTime(new DateTime('2019-02-20 10:24:00'))
+        ->setId('2');
+
+        $database->update(clone $unknown);
+        $file = $database->addFilterById('=', '2')->findOne();
+        $this->assertEquals($unknown, $file);
+    }
 }

@@ -24,7 +24,7 @@ abstract class File
     /** @var int */
     private $status;
 
-    /** @var float */
+    /** @var int */
     private $size;
 
     /** @var string */
@@ -69,9 +69,9 @@ abstract class File
         return $this;
     }
 
-    public function setSize(float $size): self
+    public function setSize(int $bytes): self
     {
-        $this->size = $size;
+        $this->size = $bytes;
         return $this;
     }
 
@@ -108,7 +108,7 @@ abstract class File
         return $this->name;
     }
 
-    public function getSize(): float
+    public function getSize(): int
     {
         return $this->size;
     }

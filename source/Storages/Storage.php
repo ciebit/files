@@ -39,4 +39,6 @@ interface Storage
     public function setOffset(int $offset): self;
 
     public function store(File $File): self;
+
+    public function update(File $File): self;
 }

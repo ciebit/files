@@ -296,4 +296,53 @@ class Sql implements Database
 
         return $this;
     }
+
+    /** @throws Exception */
+    public function update(File $file): Storage
+    {
+        $fieldId = self::FIELD_ID;
+        $fieldName = self::FIELD_NAME;
+        $fieldDescription = self::FIELD_DESCRIPTION;
+        $fieldUrl = self::FIELD_URL;
+        $fieldSize = self::FIELD_SIZE;
+        $fieldViews = self::FIELD_VIEWS;
+        $fieldMimetype = self::FIELD_MIMETYPE;
+        $fieldDateTime = self::FIELD_DATETIME;
+        $fieldMetadata = self::FIELD_METADATA;
+        $fieldStatus = self::FIELD_STATUS;
+
+        $statement = $this->pdo->prepare(
+            "UPDATE {$this->table}
+            SET
+                `{$fieldName}` = :name,
+                `{$fieldDescription}` = :description,
+                `{$fieldUrl}` = :url,
+                `{$fieldSize}` = :size,
+                `{$fieldViews}` = :views,
+                `{$fieldMimetype}` = :mimetype,
+                `{$fieldDateTime}` = :datetime,
+                `{$fieldMetadata}` = :metadata,
+                `{$fieldStatus}` = :status
+            WHERE
+                `{$fieldId}` = :id
+            LIMIT 1"
+        );
+
+        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
+        $statement->bindValue(':name', $file->getName(), PDO::PARAM_STR);
+        $statement->bindValue(':description', $file->getDescription(), PDO::PARAM_STR);
+        $statement->bindValue(':url', $file->getUrl(), PDO::PARAM_STR);
+        $statement->bindValue(':size', $file->getSize(), PDO::PARAM_INT);
+        $statement->bindValue(':views', $file->getViews(), PDO::PARAM_INT);
+        $statement->bindValue(':mimetype', $file->getMimetype(), PDO::PARAM_STR);
+        $statement->bindValue(':datetime', $file->getDateTime()->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $statement->bindValue(':metadata', $file->getMetadata(), PDO::PARAM_STR);
+        $statement->bindValue(':status', $file->getStatus()->getValue(), PDO::PARAM_INT);
+
+        if (! $statement->execute()) {
+            throw new Exception('ciebit.files.storages.update', 4);
+        }
+
+        return $this;
+    }
 }
