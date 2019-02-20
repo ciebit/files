@@ -25,6 +25,17 @@ class SqlTest extends TestCase
         $pdo->query(file_get_contents(__DIR__.'/../../../../database/data-example.sql'));
     }
 
+    public function testDestroy(): void
+    {
+        $this->setDatabaseDefault();
+        $database = new Sql(BuildPdo::build());
+        $unknown = new Unknown('File Name', 'file-url', 'audio/mp3', Status::ACTIVE());
+        $unknown->setId('1');
+        $database->destroy($unknown);
+        $file = $database->addFilterById('=', '1')->findOne();
+        $this->assertNull($file);
+    }
+
     public function testFind(): void
     {
         $database = new Sql(BuildPdo::build());

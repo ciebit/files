@@ -140,6 +140,24 @@ class Sql implements Database
     }
 
     /** @throws Exception */
+    public function destroy(File $file): Storage
+    {
+        $statement = $this->pdo->prepare(
+            "DELETE FROM {$this->table} WHERE `id` = :id"
+        );
+
+        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
+
+        if (! $statement->execute()) {
+            throw new Exception('ciebit.files.storages.destroy', 3);
+        }
+
+        unset($file);
+
+        return $this;
+    }
+
+    /** @throws Exception */
     public function findAll(): Collection
     {
         $statement = $this->pdo->prepare("
@@ -271,8 +289,7 @@ class Sql implements Database
         $statement->bindValue(':status', $file->getStatus()->getValue(), PDO::PARAM_INT);
 
         if (! $statement->execute()) {
-            var_dump($statement->errorInfo());
-            throw new Exception("Error Processing Request", 1);
+            throw new Exception('ciebit.files.storages.store', 3);
         }
 
         $file->setId($this->pdo->lastInsertId());
