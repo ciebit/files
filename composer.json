@@ -29,19 +29,16 @@
     },
     "autoload-dev": {
         "psr-4":{
-            "Ciebit\\Files\\Test\\": "tests/"
+            "Ciebit\\Files\\Test\\": "tests/classes"
         }
     },
     "require": {
         "php": "^7.1",
-        "myclabs/php-enum": "^1.6.2"
-    },
-    "suggest": {
-        "aws/aws-sdk-php": "Required when using class Storages/FileSystem/AwsS3"
+        "myclabs/php-enum": "^1.6.2",
+        "ciebit/sql-helper": "^1.0.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.4",
-        "phpunit/dbunit": "^3.0",
-        "aws/aws-sdk-php": "^3.70"
+        "php": "^7.2",
+        "phpunit/phpunit": "^8.0"
     }
 }

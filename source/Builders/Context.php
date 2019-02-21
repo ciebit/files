@@ -19,9 +19,9 @@ class Context
 
     public function build(): File
     {
-        if (preg_match('/image/', $this->data['mimetype'])) {
+        if (preg_match('/^image\//', $this->data['mimetype'])) {
             $strategy = (new ImageBuilder)->setData($this->data);
-        } else if (preg_match('/pdf/', $this->data['mimetype'])) {
+        } else if (preg_match('/\/pdf$/', $this->data['mimetype'])) {
             $strategy = (new PdfBuilder)->setData($this->data);
         } else {
             $strategy = (new UnknownBuilder)->setData($this->data);

@@ -1,45 +1,39 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files\Images\Variations;
 
-class Variation
+use JsonSerializable;
+
+class Variation implements JsonSerializable
 {
-    private $height; #:int
-    private $width; #:int
-    private $size; #:float
-    private $uri; #:string
+    /** @var int */
+    private $height;
 
-    public function __construct(string $uri, int $height, int $width, float $size)
+    /** @var int */
+    private $width;
+
+    /** @var int */
+    private $size;
+
+    /** @var string */
+    private $url;
+
+
+    public function __construct(string $url, int $width, int $height, int $size)
     {
-        $this->uri = $uri;
+        $this->url = $url;
         $this->height = $height;
         $this->width = $width;
         $this->size = $size;
     }
 
-    public function setHeight(int $height): self
+    public function jsonSerialize(): array
     {
-        $this->height = $height;
-        return $this;
-    }
-
-    public function setSize(float $size): self
-    {
-        $this->size = $size;
-        return $this;
-    }
-
-    public function setUri(string $uri): self
-    {
-        $this->uri = $uri;
-        return $this;
-    }
-
-    public function setWidth(int $width): self
-    {
-        $this->width = $width;
-        return $this;
+        return [
+            'height' => $this->getHeight(),
+            'size' => $this->getSize(),
+            'url' => $this->getUrl(),
+            'width' => $this->getWidth()
+        ];
     }
 
     public function getHeight(): int
@@ -47,14 +41,14 @@ class Variation
         return $this->height;
     }
 
-    public function getSize(): float
+    public function getSize(): int
     {
         return $this->size;
     }
 
-    public function getUri(): string
+    public function getUrl(): string
     {
-        return $this->uri;
+        return $this->url;
     }
 
     public function getWidth(): int

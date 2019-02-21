@@ -19,7 +19,7 @@ class FromArray implements Builder
     public function build(): Variation
     {
         $status = is_array($this->data)
-        && isset($this->data['uri'])
+        && isset($this->data['url'])
         && isset($this->data['height'])
         && isset($this->data['width'])
         && isset($this->data['size']);
@@ -29,9 +29,9 @@ class FromArray implements Builder
         }
 
         return new Variation(
-            $this->data['uri'],
-            $this->data['height'],
+            $this->data['url'],
             $this->data['width'],
+            $this->data['height'],
             $this->data['size']
         );
     }

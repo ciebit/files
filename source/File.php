@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files;
 
 use Ciebit\Files\Status;
@@ -8,38 +6,54 @@ use DateTime;
 
 abstract class File
 {
-    private $description; #:string
-    private $date_hour; #:DateTime
-    private $extension; #:string
-    private $id; #:int
-    private $mimetype; #:string
-    private $name; #:string
-    private $status; #:int
-    private $size; #:float
-    private $uri; #:string
-    private $views; #:int
+    /** @var string */
+    private $description;
+
+    /** @var DateTime */
+    private $datetime;
+
+    /** @var string */
+    private $id;
+
+    /** @var string */
+    private $mimetype;
+
+    /** @var string */
+    private $name;
+
+    /** @var int */
+    private $status;
+
+    /** @var int */
+    private $size;
+
+    /** @var string */
+    private $url;
+
+    /** @var int */
+    private $views;
+
 
     public function __construct(
         string $name,
-        string $uri,
+        string $url,
         string $mimetype,
         Status $status
     ) {
         $this->description = '';
-        $this->date_hour = new DateTime;
-        $this->extension = '';
-        $this->id = 0;
+        $this->datetime = new DateTime;
+        $this->id = '';
         $this->mimetype = $mimetype;
         $this->name = $name;
         $this->size = 0;
         $this->status = $status;
-        $this->uri = $uri;
+        $this->url = $url;
         $this->views = 0;
     }
 
-    public function setDateHour(DateTime $date_hour): self
+    public function setDateTime(DateTime $datetime): self
     {
-        $this->date_hour = $date_hour;
+        $this->datetime = $datetime;
         return $this;
     }
 
@@ -49,45 +63,15 @@ abstract class File
         return $this;
     }
 
-    public function setExtension(string $extension): self
-    {
-        $this->extension = $extension;
-        return $this;
-    }
-
-    public function setId(int $id): self
+    public function setId(string $id): self
     {
         $this->id = $id;
         return $this;
     }
 
-    public function setMimetype(string $mimetype): self
+    public function setSize(int $bytes): self
     {
-        $this->mimetype = $mimetype;
-        return $this;
-    }
-
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    public function setSize(float $size): self
-    {
-        $this->size = $size;
-        return $this;
-    }
-
-    public function setStatus(Status $status): self
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function setUri(string $uri): self
-    {
-        $this->uri = $uri;
+        $this->size = $bytes;
         return $this;
     }
 
@@ -97,9 +81,9 @@ abstract class File
         return $this;
     }
 
-    public function getDateHour(): DateTime
+    public function getDateTime(): DateTime
     {
-        return $this->date_hour;
+        return $this->datetime;
     }
 
     public function getDescription(): string
@@ -107,15 +91,12 @@ abstract class File
         return $this->description;
     }
 
-    public function getExtension(): string
-    {
-        return $this->extension;
-    }
-
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
+
+    public abstract function getMetadata(): string;
 
     public function getMimetype(): string
     {
@@ -127,7 +108,7 @@ abstract class File
         return $this->name;
     }
 
-    public function getSize(): float
+    public function getSize(): int
     {
         return $this->size;
     }
@@ -137,9 +118,9 @@ abstract class File
         return $this->status;
     }
 
-    public function getUri(): string
+    public function getUrl(): string
     {
-        return $this->uri;
+        return $this->url;
     }
 
     public function getViews(): int

@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files\Unknown;
 
 use Ciebit\Files\File;
@@ -11,10 +9,15 @@ class Unknown extends File
 {
     public function __construct(
         string $name,
-        string $uri,
+        string $url,
         string $mimetype,
         Status $status
     ) {
-        parent::__construct($name, $uri, $mimetype, $status);
+        parent::__construct($name, $url, $mimetype, $status);
+    }
+
+    public function getMetadata(): string
+    {
+        return '{}';
     }
 }

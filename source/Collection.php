@@ -1,47 +1,55 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files;
 
 use ArrayIterator;
 use ArrayObject;
 use Ciebit\Files\File;
+use Countable;
+use IteratorAggregate;
 
-class Collection
+class Collection implements Countable, IteratorAggregate
 {
-    private $files; #: ArrayObject
+    /** @var ArrayObject */
+    private $items;
 
     public function __construct()
     {
-        $this->files = new ArrayObject;
+        $this->items = new ArrayObject;
     }
 
-    public function add(File $file): self
+    public function add(File ...$files): self
     {
-        $this->files->append($file);
+        foreach ($files as $file) {
+            $this->items->append($file);
+        }
         return $this;
     }
 
-    public function getById(int $id): ?File
+    public function count(): int
+    {
+        return $this->items->count();
+    }
+
+    public function getArrayObject(): ArrayObject
+    {
+        return clone $this->items;
+    }
+
+    public function getById(string $id): ?File
     {
         $iterator = $this->getIterator();
 
-        foreach ($iterator as $file) {
-            if ($file->getId() == $id) {
-                return $file;
+        foreach ($iterator as $item) {
+            if ($item->getId() == $id) {
+                return $item;
             }
         }
 
         return null;
     }
 
-    public function getArrayObject(): ArrayObject
-    {
-        return clone $this->files;
-    }
-
     public function getIterator(): ArrayIterator
     {
-        return $this->files->getIterator();
+        return $this->items->getIterator();
     }
 }
