@@ -54,3 +54,15 @@ INSERT INTO `cb_files` (
     '{}',
     4
 );
+
+INSERT INTO `cb_labels` (
+    `id`,
+    `title`,
+    `parent_id`,
+    `slug`,
+    `status`
+) VALUES (
+    1, 'Label 1', NULL, 'label-1', 3
+), (
+    2, 'Label 2', NULL, 'label-2', 3
+);
