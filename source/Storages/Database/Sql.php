@@ -7,6 +7,7 @@ use Ciebit\Files\File;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Database;
 use Ciebit\Files\Storages\Storage;
+use Ciebit\Labels\Storages\Storage as LabelStorage;
 use Ciebit\SqlHelper\Sql as SqlHelper;
 use DateTime;
 use Exception;
@@ -19,6 +20,15 @@ class Sql implements Database
 {
     /** @var string */
     private const FIELD_ID = 'id';
+
+    /** @var string */
+    private const FIELD_LABEL_FILE_ID = 'file_id';
+
+    /** @var string */
+    private const FIELD_LABEL_ID = 'id';
+
+    /** @var string */
+    private const FIELD_LABEL_LABEL_ID = 'label_id';
 
     /** @var string */
     private const FIELD_DATETIME = 'datetime';
@@ -50,6 +60,9 @@ class Sql implements Database
     /** @var int **/
     static private $counterKey = 0;
 
+    /** @var LabelStorage */
+    private $labelStorage;
+
     /** @var PDO */
     private $pdo;
 
@@ -59,14 +72,19 @@ class Sql implements Database
     /** @var string */
     private $table;
 
+    /** @var string */
+    private $tableAssociationLabel;
+
     /** @var int */
     private $totalRecords;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, LabelStorage $labelStorage)
     {
+        $this->labelStorage = $labelStorage;
         $this->pdo = $pdo;
         $this->sqlHelper = new SqlHelper;
         $this->table = 'cb_files';
+        $this->tableAssociationLabel = 'cb_files_labels';
         $this->totalRecords = 0;
     }
 
@@ -97,6 +115,25 @@ class Sql implements Database
     {
         $ids = array_map('intval', $ids);
         $this->addFilter(self::FIELD_ID, PDO::PARAM_INT, $operator, ...$ids);
+        return $this;
+    }
+
+    public function addFilterByLabelId(string $operator, string ...$ids): Storage
+    {
+        $table = "`{$this->table}`";
+        $tableAssociation = "`{$this->tableAssociationLabel}`";
+        $fieldId = '`'. self::FIELD_ID .'`';
+        $fieldFileId = '`'. self::FIELD_LABEL_FILE_ID .'`';
+        $fieldLabelId = '`'. self::FIELD_LABEL_LABEL_ID .'`';
+
+        $ids = array_map('intval', $ids);
+        $this->addFilter("{$tableAssociation}.{$fieldLabelId}", PDO::PARAM_INT, $operator, ...$ids);
+
+        $this->addSqlJoin(
+            "INNER JOIN {$tableAssociation}
+            ON {$tableAssociation}.{$fieldFileId} = {$table}.{$fieldId}"
+        );
+
         return $this;
     }
 
@@ -191,18 +228,26 @@ class Sql implements Database
     /** @throws Exception */
     public function findOne(): ?File
     {
-        $statement = $this->pdo->prepare("
-            SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
-            FROM {$this->table}
+        $fieldId = self::FIELD_ID;
+        $fieldFileId = self::FIELD_LABEL_FILE_ID;
+        $fieldLabelId = self::FIELD_LABEL_LABEL_ID;
+
+        $statement = $this->pdo->prepare(
+            "SELECT SQL_CALC_FOUND_ROWS
+            {$this->getFields()},
+            GROUP_CONCAT(`{$this->tableAssociationLabel}`.`{$fieldLabelId}`) as `labels_id`
+            FROM `{$this->table}`
+            LEFT JOIN `{$this->tableAssociationLabel}`
+            ON `{$this->tableAssociationLabel}`.`{$fieldFileId}` = `{$this->table}`.`{$fieldId}`
+            {$this->sqlHelper->generateSqlJoin()}
             WHERE {$this->sqlHelper->generateSqlFilters()}
-            LIMIT 1
-        ");
+            GROUP BY `{$this->table}`.`{$fieldId}`
+            LIMIT 1"
+        );
 
         $this->sqlHelper->bind($statement);
 
         if ($statement->execute() === false) {
-            var_dump($statement->errorInfo());
             throw new Exception('ciebit.files.storages.get_error', 2);
         }
 
@@ -213,7 +258,14 @@ class Sql implements Database
             return null;
         }
 
-        return (new Builder)->setData($fileData)->build();
+        $file = (new Builder)->setData($fileData)->build();
+        $labelsId = explode(',', $fileData['labels_id']);
+        if (count($labelsId) > 0) {
+            $labels = (clone $this->labelStorage)->addFilterById('=', ...$labelsId)->findAll();
+            $file->setLabels($labels);
+        }
+
+        return $file;
     }
 
     private function getFields(): string
@@ -260,6 +312,12 @@ class Sql implements Database
     public function setTable(string $name): self
     {
         $this->table = $name;
+        return $this;
+    }
+
+    public function setTableAssociationLabel(string $name): self
+    {
+        $this->$tableAssociationLabel = $name;
         return $this;
     }
 

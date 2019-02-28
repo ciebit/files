@@ -11,6 +11,7 @@ use Ciebit\Files\Unknown\Unknown;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Sql;
 use Ciebit\Files\Test\BuildPdo;
+use Ciebit\Labels\Storages\Database\Sql as LabelSql;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 
@@ -47,9 +48,16 @@ class SqlTest extends TestCase
         ->setId('5');
     }
 
+    private function getDatabase(): Sql
+    {
+        $pdo = BuildPdo::build();
+        $labelStorage = new LabelSql($pdo);
+        return new Sql($pdo, $labelStorage);
+    }
+
     private function setDatabaseDefault(): void
     {
-        $pdo = $database = BuildPdo::build();
+        $pdo = BuildPdo::build();
         $pdo->query('DELETE FROM `cb_files`');
         $pdo->query(file_get_contents(__DIR__.'/../../../../database/data-example.sql'));
     }
@@ -57,7 +65,7 @@ class SqlTest extends TestCase
     public function testDestroy(): void
     {
         $this->setDatabaseDefault();
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $unknown = new Unknown('File Name', 'file-url', 'audio/mp3', Status::ACTIVE());
         $unknown->setId('1');
         $database->destroy($unknown);
@@ -67,14 +75,35 @@ class SqlTest extends TestCase
 
     public function testFind(): void
     {
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $file = $database->findOne();
         $this->assertInstanceOf(File::class, $file);
     }
 
+    public function testFindDataIntegrity(): void
+    {
+        $this->setDatabaseDefault();
+        $database = $this->getDatabase();
+        $file = $database->findOne();
+        $this->assertInstanceOf(File::class, $file);
+        $this->assertEquals(1, $file->getId());
+        $this->assertEquals('Title File 1', $file->getName());
+        $this->assertEquals('Description File 1', $file->getDescription());
+        $this->assertEquals('url-file-1.jpg', $file->getUrl());
+        $this->assertEquals(10, $file->getSize());
+        $this->assertEquals(0, $file->getViews());
+        $this->assertEquals('image/jpg', $file->getMimetype());
+        $this->assertEquals('2018-05-26 10:33:22', $file->getDateTime()->format('Y-m-d H:i:s'));
+        $this->assertEquals(3, $file->getStatus()->getValue());
+        $this->assertEquals(600, $file->getWidth());
+        $this->assertEquals(150, $file->getHeight());
+        $this->assertEquals('Label 1', $file->getLabels()->getArrayObject()->offsetGet(0)->getTitle());
+        $this->assertEquals('Label 2', $file->getLabels()->getArrayObject()->offsetGet(1)->getTitle());
+    }
+
     public function testFindWithFilterByStatus(): void
     {
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $database->addFilterByStatus('=', Status::ACTIVE());
         $file = $database->findOne();
         $this->assertEquals(Status::ACTIVE(), $file->getStatus());
@@ -83,7 +112,7 @@ class SqlTest extends TestCase
     public function testFindWithFilterById(): void
     {
         $id = 2;
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $database->addFilterById('=', $id+0);
         $file = $database->findOne();
         $this->assertEquals($id, $file->getId());
@@ -91,7 +120,7 @@ class SqlTest extends TestCase
 
     public function testFindWithFilterByMultiplesIds(): void
     {
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $database->addFilterById('=', ...[2,3,4]);
         $files = $database->findAll();
 
@@ -104,7 +133,7 @@ class SqlTest extends TestCase
     public function testFindAll(): void
     {
         $this->setDatabaseDefault();
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $files = $database->findAll();
         $this->assertInstanceOf(Collection::class, $files);
         $this->assertCount(4, $files);
@@ -113,7 +142,7 @@ class SqlTest extends TestCase
     public function testFindAllFilterByStatus(): void
     {
         $this->setDatabaseDefault();
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $database->addFilterByStatus('=', Status::ACTIVE());
         $files = $database->findAll();
         $this->assertCount(2, $files->getIterator());
@@ -123,7 +152,7 @@ class SqlTest extends TestCase
     public function testFindAllFilterById(): void
     {
         $id = 3;
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $database->addFilterById('=', $id+0);
         $files = $database->findAll();
         $this->assertCount(1, $files->getIterator());
@@ -135,13 +164,13 @@ class SqlTest extends TestCase
         $image1 = $this->getImage()->setId('2');
 
         $this->setDatabaseDefault();
-        $storage = new Sql(BuildPdo::build());
+        $storage = $this->getDatabase();
         $storage->save(clone $image1);
         $image2 = $storage->addFilterById('=', $image1->getId())->findOne();
         $this->assertEquals($image1, $image2);
 
         $pdf1 = $this->getPdf()->setId('');
-        $storage = new Sql(BuildPdo::build());
+        $storage = $this->getDatabase();
         $storage->save($pdf1);
         $pdf2 = $storage->addFilterById('=', $pdf1->getId())->findOne();
         $this->assertEquals($pdf1, $pdf2);
@@ -152,7 +181,7 @@ class SqlTest extends TestCase
         $image1 = $this->getImage();
 
         $this->setDatabaseDefault();
-        $storage = new Sql(BuildPdo::build());
+        $storage = $this->getDatabase();
         $storage->store($image1);
 
         $image2 = $storage->addFilterById('=', $image1->getId())->findOne();
@@ -165,7 +194,7 @@ class SqlTest extends TestCase
         $pdf = $this->getPdf();
 
         $this->setDatabaseDefault();
-        $storage = new Sql(BuildPdo::build());
+        $storage = $this->getDatabase();
         $storage->store($pdf);
 
         $pdf2 = $storage->addFilterById('=', $pdf->getId())->findOne();
@@ -183,7 +212,7 @@ class SqlTest extends TestCase
         ->setId(6);
 
         $this->setDatabaseDefault();
-        $storage = new Sql(BuildPdo::build());
+        $storage = $this->getDatabase();
         $storage->store($unknownFile1);
 
         $unknownFile2 = $storage->addFilterById('=', $unknownFile1->getId())->findOne();
@@ -194,7 +223,7 @@ class SqlTest extends TestCase
     public function testUpdate(): void
     {
         $this->setDatabaseDefault();
-        $database = new Sql(BuildPdo::build());
+        $database = $this->getDatabase();
         $unknown = new Unknown('File Name', 'file-url.mp3', 'audio/mp3', Status::ACTIVE());
         $unknown
         ->setDescription('Description Unknown File')
