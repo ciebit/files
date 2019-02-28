@@ -118,6 +118,15 @@ class SqlTest extends TestCase
         $this->assertEquals($id, $file->getId());
     }
 
+    public function testFindWithFilterByLabelId(): void
+    {
+        $id = 2;
+        $database = $this->getDatabase();
+        $database->addFilterByLabelId('=', $id+0);
+        $file = $database->findOne();
+        $this->assertEquals(1, $file->getId());
+    }
+
     public function testFindWithFilterByMultiplesIds(): void
     {
         $database = $this->getDatabase();
@@ -157,6 +166,18 @@ class SqlTest extends TestCase
         $files = $database->findAll();
         $this->assertCount(1, $files->getIterator());
         $this->assertEquals($id, $files->getArrayObject()->offsetGet(0)->getId());
+    }
+
+    public function testFindAllFilterByLabelId(): void
+    {
+        $id = 1;
+        $database = $this->getDatabase();
+        $database->addFilterByLabelId('=', $id+0);
+        $files = $database->findAll();
+        $this->assertCount(1, $files->getIterator());
+        $label = $files->getArrayObject()->offsetGet(0);
+        $this->assertEquals(1, $label->getId());
+        $this->assertCount(2, $label->getLabels());
     }
 
     public function testSave(): void

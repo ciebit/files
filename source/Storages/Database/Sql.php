@@ -7,14 +7,20 @@ use Ciebit\Files\File;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Database;
 use Ciebit\Files\Storages\Storage;
+use Ciebit\Labels\Collection as LabelsCollection;
 use Ciebit\Labels\Storages\Storage as LabelStorage;
 use Ciebit\SqlHelper\Sql as SqlHelper;
 use DateTime;
 use Exception;
 use PDO;
 
+use function array_column;
 use function array_map;
+use function array_merge;
+use function array_unique;
+use function explode;
 use function intval;
+use function is_array;
 
 class Sql implements Database
 {
@@ -120,20 +126,17 @@ class Sql implements Database
 
     public function addFilterByLabelId(string $operator, string ...$ids): Storage
     {
-        $table = "`{$this->table}`";
         $tableAssociation = "`{$this->tableAssociationLabel}`";
-        $fieldId = '`'. self::FIELD_ID .'`';
-        $fieldFileId = '`'. self::FIELD_LABEL_FILE_ID .'`';
         $fieldLabelId = '`'. self::FIELD_LABEL_LABEL_ID .'`';
+        $fieldFileId = '`'. self::FIELD_LABEL_FILE_ID .'`';
+        $fieldId = '`'. self::FIELD_ID .'`';
 
         $ids = array_map('intval', $ids);
-        $this->addFilter("{$tableAssociation}.{$fieldLabelId}", PDO::PARAM_INT, $operator, ...$ids);
-
-        $this->addSqlJoin(
-            "INNER JOIN {$tableAssociation}
-            ON {$tableAssociation}.{$fieldFileId} = {$table}.{$fieldId}"
+        $this->sqlHelper->addFilterBy("{$tableAssociation}.{$fieldLabelId}", PDO::PARAM_INT, $operator, ...$ids);
+        $this->sqlHelper->addSqlJoin(
+            "INNER JOIN {$this->tableAssociationLabel}
+            ON {$this->tableAssociationLabel}.{$fieldFileId} = {$this->table}.{$fieldId}"
         );
-
         return $this;
     }
 
@@ -194,32 +197,70 @@ class Sql implements Database
         return $this;
     }
 
+    private function extractLabelsId(array $data): array
+    {
+        $labelsId = [];
+
+        foreach ($data as $ids) {
+            $labelsId = array_merge($labelsId, explode(',', $ids));
+        }
+
+        return array_unique($labelsId);
+    }
+
     /** @throws Exception */
     public function findAll(): Collection
     {
-        $statement = $this->pdo->prepare("
-            SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
-            FROM {$this->table}
+        $fieldId = self::FIELD_ID;
+        $fieldFileId = self::FIELD_LABEL_FILE_ID;
+        $fieldLabelId = self::FIELD_LABEL_LABEL_ID;
+
+        $statement = $this->pdo->prepare(
+            $sql = "SELECT SQL_CALC_FOUND_ROWS
+            {$this->getFields()},
+            (
+                SELECT GROUP_CONCAT(`{$this->tableAssociationLabel}`.`{$fieldLabelId}`)
+                FROM  `{$this->tableAssociationLabel}`
+                WHERE `{$this->tableAssociationLabel}`.`{$fieldFileId}` = `{$this->table}`.`{$fieldId}`
+            )  as `labels_id`
+            FROM `{$this->table}`
+            {$this->sqlHelper->generateSqlJoin()}
             WHERE {$this->sqlHelper->generateSqlFilters()}
+            GROUP BY `{$this->table}`.`{$fieldId}`
             {$this->sqlHelper->generateSqlLimit()}
         ");
 
         $this->sqlHelper->bind($statement);
 
         if ($statement->execute() === false) {
+            echo $sql;
             throw new Exception('ciebit.stories.storages.get_error', 2);
         }
 
         $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
 
+        $fileData = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $labelsId = $this->extractLabelsId(array_column($fileData, 'labels_id'));
+        if (! empty($labelsId)) {
+            $labels = (clone $this->labelStorage)->addFilterById('=', ...$labelsId)->findAll();
+        }
+
         $collection = new Collection;
         $builder = new Builder;
 
-        while ($fileData = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $collection->add(
-                $builder->setData($fileData)->build()
-            );
+        foreach ($fileData as $data) {
+            $file = $builder->setData($data)->build();
+            $collection->add($file);
+
+            if (isset($labels) && ! empty($data['labels_id'])) {
+                $dataLabelsId = explode(',', $data['labels_id']);
+                $labelsCollection = new LabelsCollection;
+                foreach ($dataLabelsId as $labelId) {
+                    $labelsCollection->add($labels->getById($labelId));
+                }
+
+                $file->setLabels($labelsCollection);
+            }
         }
 
         return $collection;
@@ -228,44 +269,14 @@ class Sql implements Database
     /** @throws Exception */
     public function findOne(): ?File
     {
-        $fieldId = self::FIELD_ID;
-        $fieldFileId = self::FIELD_LABEL_FILE_ID;
-        $fieldLabelId = self::FIELD_LABEL_LABEL_ID;
+        $storage = clone $this;
+        $labels = $storage->setLimit(1)->findAll();
 
-        $statement = $this->pdo->prepare(
-            "SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()},
-            GROUP_CONCAT(`{$this->tableAssociationLabel}`.`{$fieldLabelId}`) as `labels_id`
-            FROM `{$this->table}`
-            LEFT JOIN `{$this->tableAssociationLabel}`
-            ON `{$this->tableAssociationLabel}`.`{$fieldFileId}` = `{$this->table}`.`{$fieldId}`
-            {$this->sqlHelper->generateSqlJoin()}
-            WHERE {$this->sqlHelper->generateSqlFilters()}
-            GROUP BY `{$this->table}`.`{$fieldId}`
-            LIMIT 1"
-        );
-
-        $this->sqlHelper->bind($statement);
-
-        if ($statement->execute() === false) {
-            throw new Exception('ciebit.files.storages.get_error', 2);
-        }
-
-        $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
-
-        $fileData = $statement->fetch(PDO::FETCH_ASSOC);
-        if ($fileData == false) {
+        if (count($labels) == 0) {
             return null;
         }
 
-        $file = (new Builder)->setData($fileData)->build();
-        $labelsId = explode(',', $fileData['labels_id']);
-        if (count($labelsId) > 0) {
-            $labels = (clone $this->labelStorage)->addFilterById('=', ...$labelsId)->findAll();
-            $file->setLabels($labels);
-        }
-
-        return $file;
+        return $labels->getArrayObject()->offsetGet(0);
     }
 
     private function getFields(): string
