@@ -19,6 +19,14 @@ use function file_get_contents;
 
 class SqlTest extends TestCase
 {
+    /** @var array */
+    private static $sqlData;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$sqlData = array_filter(explode(";", file_get_contents(__DIR__.'/../../../../database/data-example.sql')));
+    }
+
     private function getImage(): Image
     {
         $image = (new Image('Image Name File', 'url-image.png', 'image/png', 1000, 600, Status::ACTIVE()))
@@ -58,13 +66,20 @@ class SqlTest extends TestCase
     private function setDatabaseDefault(): void
     {
         $pdo = BuildPdo::build();
-        $pdo->query('DELETE FROM `cb_files`');
-        $pdo->query(file_get_contents(__DIR__.'/../../../../database/data-example.sql'));
+        $pdo->exec('DELETE FROM `cb_files`');
+        $pdo->exec('DELETE FROM `cb_files_labels`');
+        foreach (self::$sqlData as $sql) {
+            $pdo->exec($sql);
+        }
+    }
+
+    protected function setUp(): void
+    {
+        $this->setDatabaseDefault();
     }
 
     public function testDestroy(): void
     {
-        $this->setDatabaseDefault();
         $database = $this->getDatabase();
         $unknown = new Unknown('File Name', 'file-url', 'audio/mp3', Status::ACTIVE());
         $unknown->setId('1');
@@ -82,7 +97,6 @@ class SqlTest extends TestCase
 
     public function testFindDataIntegrity(): void
     {
-        $this->setDatabaseDefault();
         $database = $this->getDatabase();
         $file = $database->findOne();
         $this->assertInstanceOf(File::class, $file);
@@ -141,7 +155,6 @@ class SqlTest extends TestCase
 
     public function testFindAll(): void
     {
-        $this->setDatabaseDefault();
         $database = $this->getDatabase();
         $files = $database->findAll();
         $this->assertInstanceOf(Collection::class, $files);
@@ -150,7 +163,6 @@ class SqlTest extends TestCase
 
     public function testFindAllFilterByStatus(): void
     {
-        $this->setDatabaseDefault();
         $database = $this->getDatabase();
         $database->addFilterByStatus('=', Status::ACTIVE());
         $files = $database->findAll();
@@ -184,7 +196,6 @@ class SqlTest extends TestCase
     {
         $image1 = $this->getImage()->setId('2');
 
-        $this->setDatabaseDefault();
         $storage = $this->getDatabase();
         $storage->save(clone $image1);
         $image2 = $storage->addFilterById('=', $image1->getId())->findOne();
@@ -201,7 +212,6 @@ class SqlTest extends TestCase
     {
         $image1 = $this->getImage();
 
-        $this->setDatabaseDefault();
         $storage = $this->getDatabase();
         $storage->store($image1);
 
@@ -214,7 +224,6 @@ class SqlTest extends TestCase
     {
         $pdf = $this->getPdf();
 
-        $this->setDatabaseDefault();
         $storage = $this->getDatabase();
         $storage->store($pdf);
 
@@ -232,7 +241,6 @@ class SqlTest extends TestCase
         ->setViews(12)
         ->setId(6);
 
-        $this->setDatabaseDefault();
         $storage = $this->getDatabase();
         $storage->store($unknownFile1);
 
@@ -243,7 +251,6 @@ class SqlTest extends TestCase
 
     public function testUpdate(): void
     {
-        $this->setDatabaseDefault();
         $database = $this->getDatabase();
         $unknown = new Unknown('File Name', 'file-url.mp3', 'audio/mp3', Status::ACTIVE());
         $unknown

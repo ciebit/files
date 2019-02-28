@@ -66,3 +66,13 @@ INSERT INTO `cb_labels` (
 ), (
     2, 'Label 2', NULL, 'label-2', 3
 );
+
+INSERT INTO `cb_files_labels` (
+    `id`,
+    `file_id`,
+    `label_id`
+) VALUES (
+    1, 1, 1
+), (
+    2, 1, 2
+);
