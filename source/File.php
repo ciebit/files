@@ -2,6 +2,7 @@
 namespace Ciebit\Files;
 
 use Ciebit\Files\Status;
+use Ciebit\Labels\Collection as LabelCollection;
 use DateTime;
 
 abstract class File
@@ -14,6 +15,9 @@ abstract class File
 
     /** @var string */
     private $id;
+
+    /** @var LabelCollection */
+    private $labels;
 
     /** @var string */
     private $mimetype;
@@ -43,6 +47,7 @@ abstract class File
         $this->description = '';
         $this->datetime = new DateTime;
         $this->id = '';
+        $this->labels = new LabelCollection;
         $this->mimetype = $mimetype;
         $this->name = $name;
         $this->size = 0;
@@ -66,6 +71,12 @@ abstract class File
     public function setId(string $id): self
     {
         $this->id = $id;
+        return $this;
+    }
+
+    public function setLabels(LabelCollection $labels): self
+    {
+        $this->labels = $labels;
         return $this;
     }
 
@@ -94,6 +105,11 @@ abstract class File
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getLabels(): LabelCollection
+    {
+        return $this->labels;
     }
 
     public abstract function getMetadata(): string;

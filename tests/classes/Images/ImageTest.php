@@ -5,6 +5,7 @@ use Ciebit\Files\File;
 use Ciebit\Files\Images\Image;
 use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
 use Ciebit\Files\Status;
+use Ciebit\Labels\Collection as LabelsCollection;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 use stdClass;
@@ -45,6 +46,7 @@ class ImageTest extends TestCase
         ->setId(self::ID)
         ->setSize(self::SIZE)
         ->setVariations(new VariationsCollection)
+        ->setLabels(new LabelsCollection)
         ->setViews(self::VIEWS)
         ;
 
@@ -66,6 +68,7 @@ class ImageTest extends TestCase
             $image->getMetadata()
         );
         $this->assertInstanceOf(VariationsCollection::class, $image->getVariations());
+        $this->assertInstanceOf(LabelsCollection::class, $image->getLabels());
         $this->assertEquals(self::VIEWS, $image->getViews());
     }
 }
