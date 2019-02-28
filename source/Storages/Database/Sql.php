@@ -182,8 +182,43 @@ class Sql implements Database
     /** @throws Exception */
     public function destroy(File $file): Storage
     {
+        try {
+            $this->pdo->beginTransaction();
+            $this->destroyAssociationLabels($file);
+            $this->destroyFile($file);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        return $this;
+    }
+
+    private function destroyAssociationLabels(File $file): self
+    {
+        $fieldFileId = self::FIELD_LABEL_FILE_ID;
+
         $statement = $this->pdo->prepare(
-            "DELETE FROM {$this->table} WHERE `id` = :id"
+            "DELETE FROM {$this->tableAssociationLabel} WHERE `{$fieldFileId}` = :id"
+        );
+
+        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
+
+        if (! $statement->execute()) {
+            throw new Exception('ciebit.files.storages.destroy', 3);
+        }
+
+        return $this;
+
+    }
+
+    private function destroyFile(File $file): self
+    {
+        $fieldId = self::FIELD_ID;
+
+        $statement = $this->pdo->prepare(
+            "DELETE FROM {$this->table} WHERE `{$fieldId}` = :id"
         );
 
         $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
