@@ -370,6 +370,23 @@ class Sql implements Database
     /** @throws Exception */
     public function store(File $file): Storage
     {
+        try {
+            $this->pdo->beginTransaction();
+            $this->storeFile($file);
+            $this->storeAssociationLabels($file);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            $file->setId('');
+            throw $e;
+        }
+
+        return $this;
+    }
+
+    /** @throws Exception */
+    public function storeFile(File $file): self
+    {
         $fieldName = self::FIELD_NAME;
         $fieldDescription = self::FIELD_DESCRIPTION;
         $fieldUrl = self::FIELD_URL;
@@ -407,6 +424,46 @@ class Sql implements Database
         }
 
         $file->setId($this->pdo->lastInsertId());
+
+        return $this;
+    }
+
+    private function storeAssociationLabels(File $file): self
+    {
+        $totalLabels = count($file->getLabels());
+        if ($totalLabels <= 0) {
+            return $this;
+        }
+
+        $values = [];
+        for ($i=0; $i < $totalLabels; $i++) {
+            $values[] = "(:file_id, :label_id_{$i})";
+        }
+
+        $fieldFileId = self::FIELD_LABEL_FILE_ID;
+        $fieldLabelId = self::FIELD_LABEL_LABEL_ID;
+
+        $statement = $this->pdo->prepare(
+            "INSERT INTO {$this->tableAssociationLabel} (
+                `{$fieldFileId}`, `{$fieldLabelId}`
+            ) VALUES ". implode(',', $values)
+        );
+
+        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
+        $statement->bindValue(':file_id', $file->getId(), PDO::PARAM_INT);
+
+        $labelsList = $file->getLabels()->getArrayObject();
+        for ($i=0; $labelsList->offsetExists($i); $i++) {
+            $statement->bindValue(
+                ":label_id_{$i}",
+                $labelsList->offsetGet($i)->getId(),
+                PDO::PARAM_INT
+            );
+        }
+
+        if (! $statement->execute()) {
+            throw new Exception('ciebit.files.storages.store', 3);
+        }
 
         return $this;
     }

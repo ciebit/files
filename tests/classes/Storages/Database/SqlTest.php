@@ -11,6 +11,9 @@ use Ciebit\Files\Unknown\Unknown;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Sql;
 use Ciebit\Files\Test\BuildPdo;
+use Ciebit\Labels\Collection as LabelsCollection;
+use Ciebit\Labels\Label;
+use Ciebit\Labels\Status as LabelStatus;
 use Ciebit\Labels\Storages\Database\Sql as LabelSql;
 use DateTime;
 use PHPUnit\Framework\TestCase;
@@ -240,6 +243,39 @@ class SqlTest extends TestCase
         ->setSize(1024)
         ->setViews(12)
         ->setId(6);
+
+        $storage = $this->getDatabase();
+        $storage->store($unknownFile1);
+
+        $unknownFile2 = $storage->addFilterById('=', $unknownFile1->getId())->findOne();
+
+        $this->assertEquals($unknownFile1, $unknownFile2);
+    }
+
+    public function testStorageUnknowWithLabels(): void
+    {
+        $labels = (new LabelsCollection)
+        ->add(
+            (new Label(
+                'Label 1',
+                'label-1',
+                LabelStatus::ACTIVE()
+            ))->setId('1')
+        )->add(
+            (new Label(
+                'Label 2',
+                'label-2',
+                LabelStatus::ACTIVE()
+            ))->setId('2')
+        );
+
+        $unknownFile1 = (new Unknown('Unknown Name File', 'url-file.pdf', 'audio/aac', Status::ACTIVE()))
+        ->setDateTime(new DateTime('2019-02-18 09:23:00'))
+        ->setDescription('Description file Unknown')
+        ->setSize(1024)
+        ->setViews(12)
+        ->setId(6)
+        ->setLabels($labels);
 
         $storage = $this->getDatabase();
         $storage->store($unknownFile1);
