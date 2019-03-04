@@ -7,18 +7,34 @@ use Ciebit\Files\File;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Database;
 use Ciebit\Files\Storages\Storage;
+use Ciebit\Labels\Collection as LabelsCollection;
+use Ciebit\Labels\Storages\Storage as LabelStorage;
 use Ciebit\SqlHelper\Sql as SqlHelper;
 use DateTime;
 use Exception;
 use PDO;
 
+use function array_column;
 use function array_map;
+use function array_merge;
+use function array_unique;
+use function explode;
 use function intval;
+use function is_array;
 
 class Sql implements Database
 {
     /** @var string */
     private const FIELD_ID = 'id';
+
+    /** @var string */
+    private const FIELD_LABEL_FILE_ID = 'file_id';
+
+    /** @var string */
+    private const FIELD_LABEL_ID = 'id';
+
+    /** @var string */
+    private const FIELD_LABEL_LABEL_ID = 'label_id';
 
     /** @var string */
     private const FIELD_DATETIME = 'datetime';
@@ -50,6 +66,9 @@ class Sql implements Database
     /** @var int **/
     static private $counterKey = 0;
 
+    /** @var LabelStorage */
+    private $labelStorage;
+
     /** @var PDO */
     private $pdo;
 
@@ -59,14 +78,19 @@ class Sql implements Database
     /** @var string */
     private $table;
 
+    /** @var string */
+    private $tableAssociationLabel;
+
     /** @var int */
     private $totalRecords;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, LabelStorage $labelStorage)
     {
+        $this->labelStorage = $labelStorage;
         $this->pdo = $pdo;
         $this->sqlHelper = new SqlHelper;
         $this->table = 'cb_files';
+        $this->tableAssociationLabel = 'cb_files_labels';
         $this->totalRecords = 0;
     }
 
@@ -97,6 +121,22 @@ class Sql implements Database
     {
         $ids = array_map('intval', $ids);
         $this->addFilter(self::FIELD_ID, PDO::PARAM_INT, $operator, ...$ids);
+        return $this;
+    }
+
+    public function addFilterByLabelId(string $operator, string ...$ids): Storage
+    {
+        $tableAssociation = "`{$this->tableAssociationLabel}`";
+        $fieldLabelId = '`'. self::FIELD_LABEL_LABEL_ID .'`';
+        $fieldFileId = '`'. self::FIELD_LABEL_FILE_ID .'`';
+        $fieldId = '`'. self::FIELD_ID .'`';
+
+        $ids = array_map('intval', $ids);
+        $this->sqlHelper->addFilterBy("{$tableAssociation}.{$fieldLabelId}", PDO::PARAM_INT, $operator, ...$ids);
+        $this->sqlHelper->addSqlJoin(
+            "INNER JOIN {$this->tableAssociationLabel}
+            ON {$this->tableAssociationLabel}.{$fieldFileId} = {$this->table}.{$fieldId}"
+        );
         return $this;
     }
 
@@ -142,8 +182,43 @@ class Sql implements Database
     /** @throws Exception */
     public function destroy(File $file): Storage
     {
+        try {
+            $this->pdo->beginTransaction();
+            $this->destroyAssociationLabels($file);
+            $this->destroyFile($file);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        return $this;
+    }
+
+    private function destroyAssociationLabels(File $file): self
+    {
+        $fieldFileId = self::FIELD_LABEL_FILE_ID;
+
         $statement = $this->pdo->prepare(
-            "DELETE FROM {$this->table} WHERE `id` = :id"
+            "DELETE FROM {$this->tableAssociationLabel} WHERE `{$fieldFileId}` = :id"
+        );
+
+        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
+
+        if (! $statement->execute()) {
+            throw new Exception('ciebit.files.storages.destroy', 3);
+        }
+
+        return $this;
+
+    }
+
+    private function destroyFile(File $file): self
+    {
+        $fieldId = self::FIELD_ID;
+
+        $statement = $this->pdo->prepare(
+            "DELETE FROM {$this->table} WHERE `{$fieldId}` = :id"
         );
 
         $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
@@ -157,32 +232,70 @@ class Sql implements Database
         return $this;
     }
 
+    private function extractLabelsId(array $data): array
+    {
+        $labelsId = [];
+
+        foreach ($data as $ids) {
+            $labelsId = array_merge($labelsId, explode(',', $ids));
+        }
+
+        return array_unique($labelsId);
+    }
+
     /** @throws Exception */
     public function findAll(): Collection
     {
-        $statement = $this->pdo->prepare("
-            SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
-            FROM {$this->table}
+        $fieldId = self::FIELD_ID;
+        $fieldFileId = self::FIELD_LABEL_FILE_ID;
+        $fieldLabelId = self::FIELD_LABEL_LABEL_ID;
+
+        $statement = $this->pdo->prepare(
+            $sql = "SELECT SQL_CALC_FOUND_ROWS
+            {$this->getFields()},
+            (
+                SELECT GROUP_CONCAT(`{$this->tableAssociationLabel}`.`{$fieldLabelId}`)
+                FROM  `{$this->tableAssociationLabel}`
+                WHERE `{$this->tableAssociationLabel}`.`{$fieldFileId}` = `{$this->table}`.`{$fieldId}`
+            )  as `labels_id`
+            FROM `{$this->table}`
+            {$this->sqlHelper->generateSqlJoin()}
             WHERE {$this->sqlHelper->generateSqlFilters()}
+            GROUP BY `{$this->table}`.`{$fieldId}`
             {$this->sqlHelper->generateSqlLimit()}
         ");
 
         $this->sqlHelper->bind($statement);
 
         if ($statement->execute() === false) {
+            echo $sql;
             throw new Exception('ciebit.stories.storages.get_error', 2);
         }
 
         $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
 
+        $fileData = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $labelsId = $this->extractLabelsId(array_column($fileData, 'labels_id'));
+        if (! empty($labelsId)) {
+            $labels = (clone $this->labelStorage)->addFilterById('=', ...$labelsId)->findAll();
+        }
+
         $collection = new Collection;
         $builder = new Builder;
 
-        while ($fileData = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $collection->add(
-                $builder->setData($fileData)->build()
-            );
+        foreach ($fileData as $data) {
+            $file = $builder->setData($data)->build();
+            $collection->add($file);
+
+            if (isset($labels) && ! empty($data['labels_id'])) {
+                $dataLabelsId = explode(',', $data['labels_id']);
+                $labelsCollection = new LabelsCollection;
+                foreach ($dataLabelsId as $labelId) {
+                    $labelsCollection->add($labels->getById($labelId));
+                }
+
+                $file->setLabels($labelsCollection);
+            }
         }
 
         return $collection;
@@ -191,29 +304,14 @@ class Sql implements Database
     /** @throws Exception */
     public function findOne(): ?File
     {
-        $statement = $this->pdo->prepare("
-            SELECT SQL_CALC_FOUND_ROWS
-            {$this->getFields()}
-            FROM {$this->table}
-            WHERE {$this->sqlHelper->generateSqlFilters()}
-            LIMIT 1
-        ");
+        $storage = clone $this;
+        $labels = $storage->setLimit(1)->findAll();
 
-        $this->sqlHelper->bind($statement);
-
-        if ($statement->execute() === false) {
-            var_dump($statement->errorInfo());
-            throw new Exception('ciebit.files.storages.get_error', 2);
-        }
-
-        $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
-
-        $fileData = $statement->fetch(PDO::FETCH_ASSOC);
-        if ($fileData == false) {
+        if (count($labels) == 0) {
             return null;
         }
 
-        return (new Builder)->setData($fileData)->build();
+        return $labels->getArrayObject()->offsetGet(0);
     }
 
     private function getFields(): string
@@ -263,8 +361,31 @@ class Sql implements Database
         return $this;
     }
 
+    public function setTableAssociationLabel(string $name): self
+    {
+        $this->$tableAssociationLabel = $name;
+        return $this;
+    }
+
     /** @throws Exception */
     public function store(File $file): Storage
+    {
+        try {
+            $this->pdo->beginTransaction();
+            $this->storeFile($file);
+            $this->storeAssociationLabels($file);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            $file->setId('');
+            throw $e;
+        }
+
+        return $this;
+    }
+
+    /** @throws Exception */
+    public function storeFile(File $file): self
     {
         $fieldName = self::FIELD_NAME;
         $fieldDescription = self::FIELD_DESCRIPTION;
@@ -307,8 +428,64 @@ class Sql implements Database
         return $this;
     }
 
+    private function storeAssociationLabels(File $file): self
+    {
+        $totalLabels = count($file->getLabels());
+        if ($totalLabels <= 0) {
+            return $this;
+        }
+
+        $values = [];
+        for ($i=0; $i < $totalLabels; $i++) {
+            $values[] = "(:file_id, :label_id_{$i})";
+        }
+
+        $fieldFileId = self::FIELD_LABEL_FILE_ID;
+        $fieldLabelId = self::FIELD_LABEL_LABEL_ID;
+
+        $statement = $this->pdo->prepare(
+            "INSERT INTO {$this->tableAssociationLabel} (
+                `{$fieldFileId}`, `{$fieldLabelId}`
+            ) VALUES ". implode(',', $values)
+        );
+
+        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
+        $statement->bindValue(':file_id', $file->getId(), PDO::PARAM_INT);
+
+        $labelsList = $file->getLabels()->getArrayObject();
+        for ($i=0; $labelsList->offsetExists($i); $i++) {
+            $statement->bindValue(
+                ":label_id_{$i}",
+                $labelsList->offsetGet($i)->getId(),
+                PDO::PARAM_INT
+            );
+        }
+
+        if (! $statement->execute()) {
+            throw new Exception('ciebit.files.storages.store', 3);
+        }
+
+        return $this;
+    }
+
     /** @throws Exception */
     public function update(File $file): Storage
+    {
+        try {
+            $this->pdo->beginTransaction();
+            $this->updateFile($file);
+            $this->updateAssociationLabels($file);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        return $this;
+    }
+
+    /** @throws Exception */
+    private function updateFile(File $file): self
     {
         $fieldId = self::FIELD_ID;
         $fieldName = self::FIELD_NAME;
@@ -353,6 +530,14 @@ class Sql implements Database
             throw new Exception('ciebit.files.storages.update', 4);
         }
 
+        return $this;
+    }
+
+    /** @throws Exception */
+    private function updateAssociationLabels(File $file): self
+    {
+        $this->destroyAssociationLabels($file);
+        $this->storeAssociationLabels($file);
         return $this;
     }
 }

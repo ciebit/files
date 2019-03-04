@@ -1,6 +1,3 @@
---
--- Table `cb_files`
---
 CREATE TABLE `cb_files` (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
@@ -13,4 +10,12 @@ CREATE TABLE `cb_files` (
   `metadata` json DEFAULT NULL,
   `status` tinyint(1) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='version:2.0';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='version:2.1';
+
+
+CREATE TABLE `cb_files_labels` (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `file_id` int(10) UNSIGNED NOT NULL,
+  `label_id` int(5) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='version:2.1';
