@@ -471,6 +471,22 @@ class Sql implements Database
     /** @throws Exception */
     public function update(File $file): Storage
     {
+        try {
+            $this->pdo->beginTransaction();
+            $this->updateFile($file);
+            $this->updateAssociationLabels($file);
+            $this->pdo->commit();
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+
+        return $this;
+    }
+
+    /** @throws Exception */
+    private function updateFile(File $file): self
+    {
         $fieldId = self::FIELD_ID;
         $fieldName = self::FIELD_NAME;
         $fieldDescription = self::FIELD_DESCRIPTION;
@@ -514,6 +530,14 @@ class Sql implements Database
             throw new Exception('ciebit.files.storages.update', 4);
         }
 
+        return $this;
+    }
+
+    /** @throws Exception */
+    private function updateAssociationLabels(File $file): self
+    {
+        $this->destroyAssociationLabels($file);
+        $this->storeAssociationLabels($file);
         return $this;
     }
 }

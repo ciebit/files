@@ -294,7 +294,23 @@ class SqlTest extends TestCase
         ->setSize(2000)
         ->setViews(50)
         ->setDateTime(new DateTime('2019-02-20 10:24:00'))
-        ->setId('2');
+        ->setId('2')
+        ->setLabels(
+            (new LabelsCollection)
+            ->add(
+                (new Label(
+                    'Label 3',
+                    'label-3',
+                    LabelStatus::ACTIVE()
+                ))->setId('3')
+            )->add(
+                (new Label(
+                    'Label 4',
+                    'label-4',
+                    LabelStatus::ACTIVE()
+                ))->setId('4')
+            )
+        );
 
         $database->update(clone $unknown);
         $file = $database->addFilterById('=', '2')->findOne();

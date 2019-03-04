@@ -65,6 +65,10 @@ INSERT INTO `cb_labels` (
     1, 'Label 1', NULL, 'label-1', 3
 ), (
     2, 'Label 2', NULL, 'label-2', 3
+), (
+    3, 'Label 3', NULL, 'label-3', 3
+), (
+    4, 'Label 4', NULL, 'label-4', 3
 );
 
 INSERT INTO `cb_files_labels` (
