@@ -15,6 +15,7 @@ use Exception;
 use PDO;
 
 use function array_column;
+use function array_filter;
 use function array_map;
 use function array_merge;
 use function array_unique;
@@ -245,6 +246,7 @@ class Sql implements Database
             $labelsId = array_merge($labelsId, explode(',', $ids));
         }
 
+        $labelsId = array_filter($labelsId);
         return array_unique($labelsId);
     }
 
@@ -273,7 +275,6 @@ class Sql implements Database
         $this->sqlHelper->bind($statement);
 
         if ($statement->execute() === false) {
-            echo $sql;
             throw new Exception('ciebit.stories.storages.get_error', 2);
         }
 
