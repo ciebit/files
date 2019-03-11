@@ -183,6 +183,17 @@ class SqlTest extends TestCase
         $this->assertEquals($id, $files->getArrayObject()->offsetGet(0)->getId());
     }
 
+    public function testIsolation(): void
+    {
+        $database1 = $this->getDatabase();
+        $database2 = clone $database1;
+
+        $database1->addFilterByUrl('=', 'test');
+        $database2->addFilterById('=', 3, 4);
+        $files = $database2->findAll();
+        $this->assertCount(2, $files->getIterator());
+    }
+
     public function testFindAllFilterByLabelId(): void
     {
         $id = 1;

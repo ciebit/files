@@ -94,6 +94,11 @@ class Sql implements Database
         $this->totalRecords = 0;
     }
 
+    public function __clone()
+    {
+        $this->sqlHelper = clone $this->sqlHelper;
+    }
+
     private function addFilter(string $fieldName, int $type, string $operator, ...$value): self
     {
         $field = "`{$this->table}`.`{$fieldName}`";
