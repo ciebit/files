@@ -32,6 +32,8 @@ interface Storage
 
     public function findOne(): ?File;
 
+    public function getTotalItemsOfLastFindWithoutLimitations(): int;
+
     public function save(File $File): self;
 
     public function setLimit(int $limit): self;

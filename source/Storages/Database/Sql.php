@@ -83,7 +83,7 @@ class Sql implements Database
     private $tableAssociationLabel;
 
     /** @var int */
-    private $totalRecords;
+    private $totalItemsOfLastFindWithoutLimitations;
 
     public function __construct(PDO $pdo, LabelStorage $labelStorage)
     {
@@ -92,7 +92,7 @@ class Sql implements Database
         $this->sqlHelper = new SqlHelper;
         $this->table = 'cb_files';
         $this->tableAssociationLabel = 'cb_files_labels';
-        $this->totalRecords = 0;
+        $this->totalItemsOfLastFindWithoutLimitations = 0;
     }
 
     public function __clone()
@@ -278,7 +278,7 @@ class Sql implements Database
             throw new Exception('ciebit.stories.storages.get_error', 2);
         }
 
-        $this->totalRecords = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
+        $this->updateTotalItemsWithoutFilters();
 
         $fileData = $statement->fetchAll(PDO::FETCH_ASSOC);
         $labelsId = $this->extractLabelsId(array_column($fileData, 'labels_id'));
@@ -334,9 +334,14 @@ class Sql implements Database
             . "`{$this->table}`.`". self::FIELD_STATUS .'`';
     }
 
+    public function getTotalItemsOfLastFindWithoutLimitations(): int
+    {
+        return $this->totalItemsOfLastFindWithoutLimitations;
+    }
+
     public function getTotalRecords(): int
     {
-        return $this->totalRecords;
+        return $this->getTotalItemsOfLastFindWithoutLimitations();
     }
 
     /** @throws Exception */
@@ -544,6 +549,12 @@ class Sql implements Database
     {
         $this->destroyAssociationLabels($file);
         $this->storeAssociationLabels($file);
+        return $this;
+    }
+
+    private function updateTotalItemsWithoutFilters(): self
+    {
+        $this->totalItemsOfLastFindWithoutLimitations = $this->pdo->query('SELECT FOUND_ROWS()')->fetchColumn();
         return $this;
     }
 }

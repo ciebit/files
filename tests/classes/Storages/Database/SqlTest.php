@@ -206,6 +206,17 @@ class SqlTest extends TestCase
         $this->assertCount(2, $label->getLabels());
     }
 
+    public function testGetTotalItemsOfLastFindWithoutLimitations(): void
+    {
+        $database = $this->getDatabase();
+        $database->addFilterByUrl('LIKE', '%.jpg')
+        ->setLimit(1);
+
+        $file = $database->findAll();
+        $this->assertCount(1, $file);
+        $this->assertEquals(3, $database->getTotalItemsOfLastFindWithoutLimitations());
+    }
+
     public function testSave(): void
     {
         $image1 = $this->getImage()->setId('2');
