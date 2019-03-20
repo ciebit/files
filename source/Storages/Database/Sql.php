@@ -346,6 +346,9 @@ class Sql implements Database
         return $this->totalItemsOfLastFindWithoutLimitations;
     }
 
+    /**
+     * @deprecated
+    */
     public function getTotalRecords(): int
     {
         return $this->getTotalItemsOfLastFindWithoutLimitations();
