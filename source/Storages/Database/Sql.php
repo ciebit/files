@@ -185,6 +185,12 @@ class Sql implements Database
         return $this;
     }
 
+    public function addOrderBy(string $field, string $direction): Storage
+    {
+        $this->sqlHelper->addOrderBy($field, $direction);
+        return $this;
+    }
+
     /** @throws Exception */
     public function destroy(File $file): Storage
     {
@@ -269,6 +275,7 @@ class Sql implements Database
             {$this->sqlHelper->generateSqlJoin()}
             WHERE {$this->sqlHelper->generateSqlFilters()}
             GROUP BY `{$this->table}`.`{$fieldId}`
+            {$this->sqlHelper->generateSqlOrder()}
             {$this->sqlHelper->generateSqlLimit()}
         ");
 

@@ -26,6 +26,8 @@ interface Storage
 
     public function addFilterByViews(string $operator, int ...$values): self;
 
+    public function addOrderBy(string $field, string $direction): self;
+
     public function destroy(File $File): self;
 
     public function findAll(): Collection;

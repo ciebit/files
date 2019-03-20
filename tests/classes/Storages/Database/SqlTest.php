@@ -135,6 +135,14 @@ class SqlTest extends TestCase
         $this->assertEquals($id, $file->getId());
     }
 
+    public function testFindWithOrderBy(): void
+    {
+        $database = $this->getDatabase();
+        $database->addOrderBy('id', 'DESC');
+        $file = $database->findOne();
+        $this->assertEquals(4, $file->getId());
+    }
+
     public function testFindWithFilterByLabelId(): void
     {
         $id = 2;
