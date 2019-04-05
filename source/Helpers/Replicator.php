@@ -14,6 +14,6 @@ class Replicator
     {
         $data = json_decode(json_encode($file), true);
         $data = array_merge($data, $variations);
-        return (new Context)->setData($data)->buid();
+        return (new Context)->setData($data)->build();
     }
 }
