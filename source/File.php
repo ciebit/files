@@ -3,8 +3,9 @@ namespace Ciebit\Files;
 
 use Ciebit\Files\Status;
 use DateTime;
+use JsonSerializable;
 
-abstract class File
+abstract class File implements JsonSerializable
 {
     /** @var string */
     private $description;
@@ -148,5 +149,22 @@ abstract class File
     public function getViews(): int
     {
         return $this->views;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'description' => $this->description,
+            'datetime' => $this->getDateTime()->format('Y-m-d H:i:s'),
+            'id' => $this->id,
+            'labelsId' => $this->labelsId,
+            'metadata' => $this->metadata,
+            'mimetype' => $this->mimetype,
+            'name' => $this->name,
+            'status' => $this->status,
+            'size' => $this->size,
+            'url' => $this->url,
+            'views' => $this->views,
+        ];
     }
 }

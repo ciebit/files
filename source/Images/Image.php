@@ -69,4 +69,16 @@ class Image extends File
     {
         return $this->variations;
     }
+
+    public function jsonSerialize(): array
+    {
+        return array_merge(
+            parent::jsonSerialize(),
+            [
+                'width' => $this->getWidth(),
+                'height' => $this->getHeight(),
+                'variations' => json_decode(json_encode($this->getVariations()), true)
+            ]
+        );
+    }
 }
