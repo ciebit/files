@@ -294,7 +294,7 @@ class Sql implements Database
 
         foreach ($fileData as $data) {
             $data['metadata'] = json_decode($data['metadata'], true);
-            $data['labelsId'] = explode(',', $data['labels_id']);
+            $data['labelsId'] = array_filter(explode(',', $data['labels_id']));
             $file = $builder->setData($data)->build();
             $collection->add($file);
         }
@@ -439,7 +439,8 @@ class Sql implements Database
 
     private function storeAssociationLabels(File $file): self
     {
-        $totalLabels = count($file->getLabelsId());
+        $labelsIds = $file->getLabelsId();
+        $totalLabels = count($labelsIds);
         if ($totalLabels <= 0) {
             return $this;
         }
@@ -458,16 +459,12 @@ class Sql implements Database
             ) VALUES ". implode(',', $values)
         );
 
-        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
         $statement->bindValue(':file_id', $file->getId(), PDO::PARAM_INT);
 
-        $labelsList = $file->getLabelsId();
-        $i = 0;
-        foreach ($labelsList as $id) {
+        for ($i=0; $i < $totalLabels; $i++) {
             $statement->bindValue(
-                ":label_id_{$i}", $id, PDO::PARAM_INT
+                ":label_id_{$i}", $labelsIds[$i], PDO::PARAM_INT
             );
-            $i++;
         }
 
         if (! $statement->execute()) {

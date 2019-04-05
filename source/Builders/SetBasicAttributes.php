@@ -17,6 +17,10 @@ trait setBasicAttributes
         isset($this->data['id'])
         && $file->setId((string) $this->data['id']);
 
+        isset($this->data['labelsId'])
+        && is_array($this->data['labelsId'])
+        && $file->setLabelsId($this->data['labelsId']);
+
         isset($this->data['size'])
         && $file->setSize((float) $this->data['size']);
 
