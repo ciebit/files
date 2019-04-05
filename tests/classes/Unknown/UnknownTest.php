@@ -15,8 +15,8 @@ class UnknownTest extends TestCase
     /** @var string */
     private const MIMETYPE = 'application/ogg';
 
-    /** @var string */
-    private const METADATA = '{}';
+    /** @var array */
+    private const METADATA = [];
 
     /** @var string */
     private const NAME = 'File Name';
