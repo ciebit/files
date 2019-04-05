@@ -114,8 +114,8 @@ class SqlTest extends TestCase
         $this->assertEquals(3, $file->getStatus()->getValue());
         $this->assertEquals(600, $file->getWidth());
         $this->assertEquals(150, $file->getHeight());
-        $this->assertEquals('Label 1', $file->getLabels()->getArrayObject()->offsetGet(0)->getTitle());
-        $this->assertEquals('Label 2', $file->getLabels()->getArrayObject()->offsetGet(1)->getTitle());
+        $this->assertEquals('1', $file->getLabelsId()[0]);
+        $this->assertEquals('2', $file->getLabelsId()[1]);
     }
 
     public function testFindWithFilterByStatus(): void
@@ -208,10 +208,10 @@ class SqlTest extends TestCase
         $database = $this->getDatabase();
         $database->addFilterByLabelId('=', $id+0);
         $files = $database->findAll();
-        $this->assertCount(1, $files->getIterator());
-        $label = $files->getArrayObject()->offsetGet(0);
-        $this->assertEquals(1, $label->getId());
-        $this->assertCount(2, $label->getLabels());
+        $this->assertCount(1, $files);
+        $file = $files->getArrayObject()->offsetGet(0);
+        $this->assertEquals(1, $file->getId());
+        $this->assertCount(2, $file->getLabelsId());
     }
 
     public function testGetTotalItemsOfLastFindWithoutLimitations(): void

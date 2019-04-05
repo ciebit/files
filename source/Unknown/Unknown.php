@@ -15,9 +15,4 @@ class Unknown extends File
     ) {
         parent::__construct($name, $url, $mimetype, $status);
     }
-
-    public function getMetadata(): string
-    {
-        return '{}';
-    }
 }

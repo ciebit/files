@@ -1,8 +1,7 @@
 <?php
-declare(strict_types=1);
-
 namespace Ciebit\Files\Unknown\Builders;
 
+use Ciebit\Files\File;
 use Ciebit\Files\Unknown\Unknown;
 use Ciebit\Files\Builders\Strategy;
 use Ciebit\Files\Status;
@@ -22,7 +21,7 @@ class FromArray implements Strategy
         return $this;
     }
 
-    public function build(): Unknown
+    public function build(): File
     {
         $status = is_array($this->data)
         && isset($this->data['name'])

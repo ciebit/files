@@ -5,5 +5,7 @@ use Ciebit\Files\File;
 
 interface Strategy
 {
-    public function build();
+    public function build(): File;
+
+    public function setData(array $data);
 }

@@ -18,6 +18,9 @@ class ImageTest extends TestCase
     /** @var string */
     private const ID = '7';
 
+    /** @var array */
+    private const LABELS_ID = ['1', '2'];
+
     /** @var string */
     private const MIMETYPE = 'image/png';
 
@@ -46,7 +49,7 @@ class ImageTest extends TestCase
         ->setId(self::ID)
         ->setSize(self::SIZE)
         ->setVariations(new VariationsCollection)
-        ->setLabels(new LabelsCollection)
+        ->setLabelsId(self::LABELS_ID)
         ->setViews(self::VIEWS)
         ;
 
@@ -59,16 +62,16 @@ class ImageTest extends TestCase
         $this->assertEquals(self::WIDTH, $image->getWidth());
         $this->assertEquals(self::HEIGHT, $image->getHeight());
         $this->assertEquals(self::SIZE, $image->getSize());
-        $this->assertJsonStringEqualsJsonString(
-            json_encode([
+        $this->assertEquals(
+            [
                 'height' => self::HEIGHT,
                 'width' => self::WIDTH,
                 'variations' => []
-            ]),
+            ],
             $image->getMetadata()
         );
         $this->assertInstanceOf(VariationsCollection::class, $image->getVariations());
-        $this->assertInstanceOf(LabelsCollection::class, $image->getLabels());
+        $this->assertEquals(self::LABELS_ID, $image->getLabelsId());
         $this->assertEquals(self::VIEWS, $image->getViews());
     }
 }

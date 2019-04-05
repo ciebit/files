@@ -6,6 +6,7 @@ use Ciebit\Files\Builders\Strategy;
 use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
 use Ciebit\Files\Images\Variations\Builders\FromArray as VariationBuilder;
 use Ciebit\Files\Status;
+use Ciebit\Files\File;
 use Ciebit\Files\Builders\SetBasicAttributes;
 use DateTime;
 use Exception;
@@ -25,17 +26,17 @@ class FromArray implements Strategy
         return $this;
     }
 
-    public function build(): Image
+    public function build(): File
     {
-        $metadata = json_decode($this->data['metadata']);
+        $metadata = $this->data['metadata'];
 
         $status = is_array($this->data)
-        && isset($metadata->height)
+        && isset($metadata['height'])
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
         && isset($this->data['url'])
-        && isset($metadata->width);
+        && isset($metadata['width']);
 
         if (! $status) {
             throw new Exception('ciebit.files.images.builders.invalid', 1);
@@ -45,17 +46,21 @@ class FromArray implements Strategy
             $this->data['name'],
             $this->data['url'],
             $this->data['mimetype'],
-            (int) $metadata->width,
-            (int) $metadata->height,
+            (int) $metadata['width'],
+            (int) $metadata['height'],
             new Status((int) $this->data['status'])
         );
 
+        if (isset($this->data['labelsId']) && is_array($this->data['labelsId'])) {
+            $image->setLabelsId($this->data['labelsId']);
+        }
+
         $this->setBasicAttributes($image, $this->data);
 
-        if (isset($metadata->variations)) {
+        if (isset($metadata['variations'])) {
             $image->setVariations(
                 $this->standardizeVariations(
-                    $metadata->variations
+                    $metadata['variations']
                 )
             );
         }
