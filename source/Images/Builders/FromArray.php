@@ -18,7 +18,8 @@ class FromArray implements Strategy
 {
     use SetBasicAttributes;
 
-    private $data; #:array
+    /** @var array */
+    private $data;
 
     public function setData(array $data): self
     {
@@ -28,15 +29,17 @@ class FromArray implements Strategy
 
     public function build(): File
     {
-        $metadata = $this->data['metadata'];
+        $width = $this->data['width'] ?? ($this->data['metadata']['width'] ?? false);
+        $height = $this->data['height'] ?? ($this->data['metadata']['height'] ?? false);
+        $variations = $this->data['variations'] ?? ($this->data['metadata']['variations'] ?? false);
 
         $status = is_array($this->data)
-        && isset($metadata['height'])
+        && is_numeric($height)
         && isset($this->data['mimetype'])
         && isset($this->data['name'])
         && isset($this->data['status'])
         && isset($this->data['url'])
-        && isset($metadata['width']);
+        && is_numeric($width);
 
         if (! $status) {
             throw new Exception('ciebit.files.images.builders.invalid', 1);
@@ -46,8 +49,8 @@ class FromArray implements Strategy
             $this->data['name'],
             $this->data['url'],
             $this->data['mimetype'],
-            (int) $metadata['width'],
-            (int) $metadata['height'],
+            (int) $width,
+            (int) $height,
             new Status((int) $this->data['status'])
         );
 
@@ -57,10 +60,10 @@ class FromArray implements Strategy
 
         $this->setBasicAttributes($image, $this->data);
 
-        if (isset($metadata['variations'])) {
+        if ($variations != false) {
             $image->setVariations(
                 $this->standardizeVariations(
-                    $metadata['variations']
+                    $variations
                 )
             );
         }
