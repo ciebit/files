@@ -289,26 +289,14 @@ class Sql implements Database
 
         $fileData = $statement->fetchAll(PDO::FETCH_ASSOC);
         $labelsId = $this->extractLabelsId(array_column($fileData, 'labels_id'));
-        if (! empty($labelsId)) {
-            $labels = (clone $this->labelStorage)->addFilterById('=', ...$labelsId)->findAll();
-        }
-
         $collection = new Collection;
         $builder = new Builder;
 
         foreach ($fileData as $data) {
+            $data['metadata'] = json_decode($data['metadata'], true);
+            $data['labelsId'] = array_filter(explode(',', $data['labels_id']));
             $file = $builder->setData($data)->build();
             $collection->add($file);
-
-            if (isset($labels) && ! empty($data['labels_id'])) {
-                $dataLabelsId = explode(',', $data['labels_id']);
-                $labelsCollection = new LabelsCollection;
-                foreach ($dataLabelsId as $labelId) {
-                    $labelsCollection->add($labels->getById($labelId));
-                }
-
-                $file->setLabels($labelsCollection);
-            }
         }
 
         return $collection;
@@ -437,7 +425,7 @@ class Sql implements Database
         $statement->bindValue(':views', $file->getViews(), PDO::PARAM_INT);
         $statement->bindValue(':mimetype', $file->getMimetype(), PDO::PARAM_STR);
         $statement->bindValue(':datetime', $file->getDateTime()->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $statement->bindValue(':metadata', $file->getMetadata(), PDO::PARAM_STR);
+        $statement->bindValue(':metadata', json_encode($file->getMetadata()), PDO::PARAM_STR);
         $statement->bindValue(':status', $file->getStatus()->getValue(), PDO::PARAM_INT);
 
         if (! $statement->execute()) {
@@ -451,7 +439,8 @@ class Sql implements Database
 
     private function storeAssociationLabels(File $file): self
     {
-        $totalLabels = count($file->getLabels());
+        $labelsIds = $file->getLabelsId();
+        $totalLabels = count($labelsIds);
         if ($totalLabels <= 0) {
             return $this;
         }
@@ -470,15 +459,11 @@ class Sql implements Database
             ) VALUES ". implode(',', $values)
         );
 
-        $statement->bindValue(':id', $file->getId(), PDO::PARAM_INT);
         $statement->bindValue(':file_id', $file->getId(), PDO::PARAM_INT);
 
-        $labelsList = $file->getLabels()->getArrayObject();
-        for ($i=0; $labelsList->offsetExists($i); $i++) {
+        for ($i=0; $i < $totalLabels; $i++) {
             $statement->bindValue(
-                ":label_id_{$i}",
-                $labelsList->offsetGet($i)->getId(),
-                PDO::PARAM_INT
+                ":label_id_{$i}", $labelsIds[$i], PDO::PARAM_INT
             );
         }
 
@@ -544,7 +529,7 @@ class Sql implements Database
         $statement->bindValue(':views', $file->getViews(), PDO::PARAM_INT);
         $statement->bindValue(':mimetype', $file->getMimetype(), PDO::PARAM_STR);
         $statement->bindValue(':datetime', $file->getDateTime()->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $statement->bindValue(':metadata', $file->getMetadata(), PDO::PARAM_STR);
+        $statement->bindValue(':metadata', json_encode($file->getMetadata()), PDO::PARAM_STR);
         $statement->bindValue(':status', $file->getStatus()->getValue(), PDO::PARAM_INT);
 
         if (! $statement->execute()) {

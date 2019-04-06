@@ -5,7 +5,7 @@ use Ciebit\Files\File;
 use Ciebit\Files\Images\Variations\Collection as VariationsCollection;
 use Ciebit\Files\Status;
 
-use function json_encode;
+use function array_merge;
 
 class Image extends File
 {
@@ -43,13 +43,16 @@ class Image extends File
         return $this;
     }
 
-    public function getMetadata(): string
+    public function getMetadata(): array
     {
-        return json_encode([
-            'height' => $this->getHeight(),
-            'width' => $this->getWidth(),
-            'variations' => $this->getVariations()
-        ]);
+        return array_merge(
+            parent::getMetadata(),
+            [
+                'height' => $this->getHeight(),
+                'width' => $this->getWidth(),
+                'variations' => json_decode(json_encode($this->getVariations()), true)
+            ]
+        );
     }
 
     public function getHeight(): int
@@ -65,5 +68,17 @@ class Image extends File
     public function getVariations(): VariationsCollection
     {
         return $this->variations;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return array_merge(
+            parent::jsonSerialize(),
+            [
+                'width' => $this->getWidth(),
+                'height' => $this->getHeight(),
+                'variations' => json_decode(json_encode($this->getVariations()), true)
+            ]
+        );
     }
 }

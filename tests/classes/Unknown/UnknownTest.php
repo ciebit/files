@@ -10,13 +10,16 @@ use DateTime;
 class UnknownTest extends TestCase
 {
     /** @var string */
+    private const DATETIME = '2019-01-03 17:30:55';
+
+    /** @var string */
     private const ID = '7';
 
     /** @var string */
     private const MIMETYPE = 'application/ogg';
 
-    /** @var string */
-    private const METADATA = '{}';
+    /** @var array */
+    private const METADATA = [];
 
     /** @var string */
     private const NAME = 'File Name';
@@ -29,6 +32,18 @@ class UnknownTest extends TestCase
 
     /** @var int */
     private const VIEWS = 2;
+
+    public static function getInstance(): Unknown
+    {
+        return (
+            new Unknown(self::NAME, self::URL, self::MIMETYPE, Status::ACTIVE())
+        )
+        ->setDateTime(new DateTime(self::DATETIME))
+        ->setId(self::ID)
+        ->setSize(self::SIZE)
+        ->setViews(self::VIEWS)
+        ;
+    }
 
 
     public function testCreateManual(): void

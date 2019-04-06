@@ -12,11 +12,17 @@ use stdClass;
 
 class ImageTest extends TestCase
 {
+    /** @var string */
+    private const DATETIME = '2015-08-24 19:50:42';
+
     /** @var int */
     private const HEIGHT = 600;
 
     /** @var string */
     private const ID = '7';
+
+    /** @var array */
+    private const LABELS_ID = ['1', '2'];
 
     /** @var string */
     private const MIMETYPE = 'image/png';
@@ -37,6 +43,18 @@ class ImageTest extends TestCase
     private const VIEWS = 2;
 
 
+    public static function getInstance(): Image
+    {
+        return (new Image(self::NAME, self::URL, self::MIMETYPE, self::WIDTH, self::HEIGHT, Status::ACTIVE()))
+        ->setDateTime(new DateTime(self::DATETIME))
+        ->setId(self::ID)
+        ->setSize(self::SIZE)
+        ->setVariations(new VariationsCollection)
+        ->setLabelsId(self::LABELS_ID)
+        ->setViews(self::VIEWS)
+        ;
+    }
+
     public function testCreateManual(): void
     {
         $dateTime = new DateTime;
@@ -46,7 +64,7 @@ class ImageTest extends TestCase
         ->setId(self::ID)
         ->setSize(self::SIZE)
         ->setVariations(new VariationsCollection)
-        ->setLabels(new LabelsCollection)
+        ->setLabelsId(self::LABELS_ID)
         ->setViews(self::VIEWS)
         ;
 
@@ -59,16 +77,16 @@ class ImageTest extends TestCase
         $this->assertEquals(self::WIDTH, $image->getWidth());
         $this->assertEquals(self::HEIGHT, $image->getHeight());
         $this->assertEquals(self::SIZE, $image->getSize());
-        $this->assertJsonStringEqualsJsonString(
-            json_encode([
+        $this->assertEquals(
+            [
                 'height' => self::HEIGHT,
                 'width' => self::WIDTH,
                 'variations' => []
-            ]),
+            ],
             $image->getMetadata()
         );
         $this->assertInstanceOf(VariationsCollection::class, $image->getVariations());
-        $this->assertInstanceOf(LabelsCollection::class, $image->getLabels());
+        $this->assertEquals(self::LABELS_ID, $image->getLabelsId());
         $this->assertEquals(self::VIEWS, $image->getViews());
     }
 }

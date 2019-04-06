@@ -114,8 +114,8 @@ class SqlTest extends TestCase
         $this->assertEquals(3, $file->getStatus()->getValue());
         $this->assertEquals(600, $file->getWidth());
         $this->assertEquals(150, $file->getHeight());
-        $this->assertEquals('Label 1', $file->getLabels()->getArrayObject()->offsetGet(0)->getTitle());
-        $this->assertEquals('Label 2', $file->getLabels()->getArrayObject()->offsetGet(1)->getTitle());
+        $this->assertEquals('1', $file->getLabelsId()[0]);
+        $this->assertEquals('2', $file->getLabelsId()[1]);
     }
 
     public function testFindWithFilterByStatus(): void
@@ -208,10 +208,10 @@ class SqlTest extends TestCase
         $database = $this->getDatabase();
         $database->addFilterByLabelId('=', $id+0);
         $files = $database->findAll();
-        $this->assertCount(1, $files->getIterator());
-        $label = $files->getArrayObject()->offsetGet(0);
-        $this->assertEquals(1, $label->getId());
-        $this->assertCount(2, $label->getLabels());
+        $this->assertCount(1, $files);
+        $file = $files->getArrayObject()->offsetGet(0);
+        $this->assertEquals(1, $file->getId());
+        $this->assertCount(2, $file->getLabelsId());
     }
 
     public function testGetTotalItemsOfLastFindWithoutLimitations(): void
@@ -284,28 +284,12 @@ class SqlTest extends TestCase
 
     public function testStorageUnknowWithLabels(): void
     {
-        $labels = (new LabelsCollection)
-        ->add(
-            (new Label(
-                'Label 1',
-                'label-1',
-                LabelStatus::ACTIVE()
-            ))->setId('1')
-        )->add(
-            (new Label(
-                'Label 2',
-                'label-2',
-                LabelStatus::ACTIVE()
-            ))->setId('2')
-        );
-
         $unknownFile1 = (new Unknown('Unknown Name File', 'url-file.pdf', 'audio/aac', Status::ACTIVE()))
         ->setDateTime(new DateTime('2019-02-18 09:23:00'))
         ->setDescription('Description file Unknown')
         ->setSize(1024)
         ->setViews(12)
-        ->setId(6)
-        ->setLabels($labels);
+        ->setLabelsId(['1', '2']);
 
         $storage = $this->getDatabase();
         $storage->store($unknownFile1);
@@ -325,22 +309,7 @@ class SqlTest extends TestCase
         ->setViews(50)
         ->setDateTime(new DateTime('2019-02-20 10:24:00'))
         ->setId('2')
-        ->setLabels(
-            (new LabelsCollection)
-            ->add(
-                (new Label(
-                    'Label 3',
-                    'label-3',
-                    LabelStatus::ACTIVE()
-                ))->setId('3')
-            )->add(
-                (new Label(
-                    'Label 4',
-                    'label-4',
-                    LabelStatus::ACTIVE()
-                ))->setId('4')
-            )
-        );
+        ->setLabelsId(['3','4']);
 
         $database->update(clone $unknown);
         $file = $database->addFilterById('=', '2')->findOne();
