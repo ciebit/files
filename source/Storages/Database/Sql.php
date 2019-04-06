@@ -7,8 +7,6 @@ use Ciebit\Files\File;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Database;
 use Ciebit\Files\Storages\Storage;
-use Ciebit\Labels\Collection as LabelsCollection;
-use Ciebit\Labels\Storages\Storage as LabelStorage;
 use Ciebit\SqlHelper\Sql as SqlHelper;
 use DateTime;
 use Exception;
@@ -67,9 +65,6 @@ class Sql implements Database
     /** @var int **/
     static private $counterKey = 0;
 
-    /** @var LabelStorage */
-    private $labelStorage;
-
     /** @var PDO */
     private $pdo;
 
@@ -85,9 +80,8 @@ class Sql implements Database
     /** @var int */
     private $totalItemsOfLastFindWithoutLimitations;
 
-    public function __construct(PDO $pdo, LabelStorage $labelStorage)
+    public function __construct(PDO $pdo)
     {
-        $this->labelStorage = $labelStorage;
         $this->pdo = $pdo;
         $this->sqlHelper = new SqlHelper;
         $this->table = 'cb_files';

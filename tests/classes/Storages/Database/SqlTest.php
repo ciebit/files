@@ -11,10 +11,6 @@ use Ciebit\Files\Unknown\Unknown;
 use Ciebit\Files\Status;
 use Ciebit\Files\Storages\Database\Sql;
 use Ciebit\Files\Test\BuildPdo;
-use Ciebit\Labels\Collection as LabelsCollection;
-use Ciebit\Labels\Label;
-use Ciebit\Labels\Status as LabelStatus;
-use Ciebit\Labels\Storages\Database\Sql as LabelSql;
 use DateTime;
 use PHPUnit\Framework\TestCase;
 
@@ -62,8 +58,7 @@ class SqlTest extends TestCase
     private function getDatabase(): Sql
     {
         $pdo = BuildPdo::build();
-        $labelStorage = new LabelSql($pdo);
-        return new Sql($pdo, $labelStorage);
+        return new Sql($pdo);
     }
 
     private function setDatabaseDefault(): void
