@@ -19,7 +19,6 @@ use function array_merge;
 use function array_unique;
 use function explode;
 use function intval;
-use function is_array;
 
 class Sql implements Database
 {
@@ -366,7 +365,7 @@ class Sql implements Database
 
     public function setTableAssociationLabel(string $name): self
     {
-        $this->$tableAssociationLabel = $name;
+        $this->tableAssociationLabel = $name;
         return $this;
     }
 

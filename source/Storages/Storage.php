@@ -14,6 +14,8 @@ interface Storage
 
     public function addFilterById(string $operator, string ...$values): self;
 
+    public function addFilterByLabelId(string $operator, string ...$ids): self;
+
     public function addFilterByMimetype(string $operator, string ...$values): self;
 
     public function addFilterByName(string $operator, string ...$values): self;
